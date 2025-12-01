@@ -1,0 +1,25 @@
+[package]
+name = "parity"
+version = "0.3.0"
+description = "Parity on-chain verification registry for Solana"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "parity"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+
+[dependencies]
+anchor-lang = "0.30.1"
+anchor-spl = "0.30.1"
+solana-program = "1.18"
+
+[dev-dependencies]
+anchor-client = "0.30.1"
