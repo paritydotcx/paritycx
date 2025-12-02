@@ -37,4 +37,24 @@ pub enum ParityError {
 
     #[msg("Verification badge has already been revoked")]
     BadgeAlreadyRevoked,
-
+
+    #[msg("Invalid verification tier for the given score")]
+    InvalidTierForScore,
+
+    #[msg("Pattern ID exceeds maximum length of 64 characters")]
+    PatternIdTooLong,
+
+    #[msg("Detection rule exceeds maximum length of 512 characters")]
+    DetectionRuleTooLong,
+
+    #[msg("Pattern description exceeds maximum length of 256 characters")]
+    PatternDescriptionTooLong,
+
+    #[msg("Program is not registered in the registry")]
+    ProgramNotRegistered,
+
+    #[msg("Insufficient analysis score for the requested tier")]
+    InsufficientScore,
+
+    #[msg("Registry has reached maximum capacity")]
+    RegistryFull,
