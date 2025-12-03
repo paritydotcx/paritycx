@@ -57,4 +57,23 @@ pub enum ParityError {
     InsufficientScore,
 
     #[msg("Registry has reached maximum capacity")]
-    RegistryFull,
+    RegistryFull,
+
+    #[msg("Framework type is not supported")]
+    UnsupportedFramework,
+
+    #[msg("Credentials URI exceeds maximum length of 200 characters")]
+    CredentialsUriTooLong,
+
+    #[msg("Auditor name exceeds maximum length of 64 characters")]
+    AuditorNameTooLong,
+
+    #[msg("Findings count total does not match individual severity counts")]
+    FindingsCountMismatch,
+
+    #[msg("Skill has already been deprecated")]
+    SkillAlreadyDeprecated,
+
+    #[msg("Cannot update a deprecated skill")]
+    CannotUpdateDeprecatedSkill,
+}
