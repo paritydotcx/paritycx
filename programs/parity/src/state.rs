@@ -45,4 +45,33 @@ pub struct ProgramEntry {
 }
 
 #[account]
-#[derive(InitSpace)]
+#[derive(InitSpace)]
+pub struct AnalysisReport {
+    pub program_entry: Pubkey,
+    pub auditor: Pubkey,
+    pub score: u8,
+    pub findings_hash: [u8; 32],
+    #[max_len(8, 64)]
+    pub skills_used: Vec<String>,
+    pub findings_count: AnalysisFindingsCount,
+    pub submitted_at: i64,
+    pub updated_at: i64,
+    pub version: u8,
+    pub bump: u8,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace, PartialEq)]
+pub struct AnalysisFindingsCount {
+    pub critical: u16,
+    pub high: u16,
+    pub medium: u16,
+    pub info: u16,
+    pub pass: u16,
+    pub total: u16,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct SkillEntry {
+    pub authority: Pubkey,
+    #[max_len(64)]
