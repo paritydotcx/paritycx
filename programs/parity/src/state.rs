@@ -26,4 +26,23 @@ pub struct Registry {
     pub bump: u8,
     pub created_at: i64,
     pub updated_at: i64,
-}
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct ProgramEntry {
+    pub owner: Pubkey,
+    pub program_hash: [u8; 32],
+    pub framework: Framework,
+    #[max_len(200)]
+    pub metadata_uri: String,
+    pub registered_at: i64,
+    pub updated_at: i64,
+    pub analysis_count: u32,
+    pub latest_score: u8,
+    pub is_verified: bool,
+    pub bump: u8,
+}
+
+#[account]
+#[derive(InitSpace)]
