@@ -74,4 +74,43 @@ pub struct AnalysisFindingsCount {
 #[derive(InitSpace)]
 pub struct SkillEntry {
     pub authority: Pubkey,
-    #[max_len(64)]
+    #[max_len(64)]
+    pub name: String,
+    #[max_len(16)]
+    pub version: String,
+    #[max_len(256)]
+    pub description: String,
+    pub skill_type: SkillType,
+    pub usage_count: u64,
+    pub is_deprecated: bool,
+    pub registered_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct AuditorAccount {
+    pub authority: Pubkey,
+    #[max_len(64)]
+    pub name: String,
+    #[max_len(200)]
+    pub credentials_uri: String,
+    pub total_analyses: u64,
+    pub average_score: u64,
+    pub is_active: bool,
+    pub registered_at: i64,
+    pub updated_at: i64,
+    pub bump: u8,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct VerificationBadge {
+    pub program_entry: Pubkey,
+    pub issuer: Pubkey,
+    pub tier: VerificationTier,
+    pub score_at_issuance: u8,
+    pub issued_at: i64,
+    pub expires_at: i64,
+    pub is_revoked: bool,
