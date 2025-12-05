@@ -113,4 +113,43 @@ pub struct VerificationBadge {
     pub score_at_issuance: u8,
     pub issued_at: i64,
     pub expires_at: i64,
-    pub is_revoked: bool,
+    pub is_revoked: bool,
+    pub bump: u8,
+}
+
+#[account]
+#[derive(InitSpace)]
+pub struct ContextPattern {
+    pub submitter: Pubkey,
+    #[max_len(64)]
+    pub pattern_id: String,
+    pub severity: Severity,
+    pub pattern_type: PatternType,
+    #[max_len(256)]
+    pub description: String,
+    #[max_len(512)]
+    pub detection_rule: String,
+    pub usage_count: u64,
+    pub submitted_at: i64,
+    pub updated_at: i64,
+    pub is_active: bool,
+    pub bump: u8,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace, PartialEq)]
+pub enum Framework {
+    Anchor,
+    Native,
+    Seahorse,
+    Steel,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace, PartialEq)]
+pub enum SkillType {
+    SecurityAudit,
+    BestPractices,
+    GasOptimization,
+    DeepAudit,
+    Custom,
+}
+
