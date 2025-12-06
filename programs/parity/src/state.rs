@@ -152,4 +152,42 @@ pub enum SkillType {
     DeepAudit,
     Custom,
 }
-
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace, PartialEq)]
+pub enum VerificationTier {
+    Bronze,
+    Silver,
+    Gold,
+    Platinum,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace, PartialEq)]
+pub enum Severity {
+    Critical,
+    High,
+    Medium,
+    Info,
+    Pass,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace, PartialEq)]
+pub enum PatternType {
+    MissingSignerCheck,
+    UncheckedArithmetic,
+    UnvalidatedPda,
+    InsecureCpi,
+    AccountDeserialization,
+    RentExemption,
+    CloseAccount,
+    TypeCosplay,
+    ReinitiallizationAttack,
+    OwnerCheck,
+    Custom,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, InitSpace)]
+pub struct RegistryConfig {
+    pub min_score_for_badge: u8,
+    pub analysis_fee_lamports: u64,
+    pub is_paused: bool,
+}
