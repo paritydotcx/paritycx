@@ -93,4 +93,45 @@ pub struct InitializeRegistry<'info> {
     )]
     pub registry: Account<'info, Registry>,
 
-    pub system_program: Program<'info, System>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+#[instruction(program_hash: [u8; 32])]
+pub struct RegisterProgram<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+
+    #[account(
+        init,
+        payer = owner,
+        space = 8 + ProgramEntry::INIT_SPACE,
+        seeds = [b"program", program_hash.as_ref()],
+        bump
+    )]
+    pub program_entry: Account<'info, ProgramEntry>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateRegistryConfig<'info> {
+    #[account(
+        constraint = authority.key() == registry.authority @ ParityError::UnauthorizedAuditor
+    )]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+}
