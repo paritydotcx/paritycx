@@ -77,4 +77,54 @@ pub fn submit_analysis(
 }
 
 pub fn update_analysis(
-    ctx: Context<UpdateAnalysis>,
+    ctx: Context<UpdateAnalysis>,
+    new_score: u8,
+    new_findings_hash: [u8; 32],
+    new_findings_count: AnalysisFindingsCount,
+) -> Result<()> {
+    require!(new_score <= 100, ParityError::InvalidScore);
+
+    let expected_total = new_findings_count
+        .critical
+        .checked_add(new_findings_count.high)
+        .and_then(|v| v.checked_add(new_findings_count.medium))
+        .and_then(|v| v.checked_add(new_findings_count.info))
+        .and_then(|v| v.checked_add(new_findings_count.pass))
+        .unwrap();
+    require!(
+        new_findings_count.total == expected_total,
+        ParityError::FindingsCountMismatch
+    );
+
+    let analysis = &mut ctx.accounts.analysis_report;
+    let program_entry = &mut ctx.accounts.program_entry;
+    let registry = &ctx.accounts.registry;
+    let clock = Clock::get()?;
+
+    analysis.score = new_score;
+    analysis.findings_hash = new_findings_hash;
+    analysis.findings_count = new_findings_count;
+    analysis.updated_at = clock.unix_timestamp;
+    analysis.version = analysis.version.checked_add(1).unwrap();
+
+    program_entry.latest_score = new_score;
+    program_entry.updated_at = clock.unix_timestamp;
+
+    if new_score >= registry.min_score_for_badge {
+        program_entry.is_verified = true;
+    } else {
+        program_entry.is_verified = false;
+    }
+
+    msg!(
+        "Analysis updated: new_score={}, version={}",
+        new_score,
+        analysis.version
+    );
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct SubmitAnalysis<'info> {
+    #[account(mut)]
+    pub auditor: Signer<'info>,
