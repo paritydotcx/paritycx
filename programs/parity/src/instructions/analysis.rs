@@ -127,4 +127,44 @@ pub fn update_analysis(
 #[derive(Accounts)]
 pub struct SubmitAnalysis<'info> {
     #[account(mut)]
-    pub auditor: Signer<'info>,
+    pub auditor: Signer<'info>,
+
+    #[account(
+        seeds = [b"auditor", auditor.key().as_ref()],
+        bump = auditor_account.bump,
+        constraint = auditor_account.authority == auditor.key() @ ParityError::UnauthorizedAuditor
+    )]
+    pub auditor_account: Account<'info, AuditorAccount>,
+
+    #[account(
+        mut,
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+
+    #[account(
+        mut,
+        seeds = [b"program", program_entry.program_hash.as_ref()],
+        bump = program_entry.bump
+    )]
+    pub program_entry: Account<'info, ProgramEntry>,
+
+    #[account(
+        init,
+        payer = auditor,
+        space = 8 + AnalysisReport::INIT_SPACE,
+        seeds = [
+            b"analysis",
+            program_entry.key().as_ref(),
+            auditor.key().as_ref()
+        ],
+        bump
+    )]
+    pub analysis_report: Account<'info, AnalysisReport>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateAnalysis<'info> {
