@@ -167,4 +167,33 @@ pub struct SubmitAnalysis<'info> {
 }
 
 #[derive(Accounts)]
-pub struct UpdateAnalysis<'info> {
+pub struct UpdateAnalysis<'info> {
+    #[account(
+        constraint = auditor.key() == analysis_report.auditor @ ParityError::UnauthorizedAuditor
+    )]
+    pub auditor: Signer<'info>,
+
+    #[account(
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+
+    #[account(
+        mut,
+        seeds = [b"program", program_entry.program_hash.as_ref()],
+        bump = program_entry.bump
+    )]
+    pub program_entry: Account<'info, ProgramEntry>,
+
+    #[account(
+        mut,
+        seeds = [
+            b"analysis",
+            program_entry.key().as_ref(),
+            auditor.key().as_ref()
+        ],
+        bump = analysis_report.bump
+    )]
+    pub analysis_report: Account<'info, AnalysisReport>,
+}
