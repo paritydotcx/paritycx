@@ -51,4 +51,45 @@ pub fn update_skill(
 
     require!(!skill.is_deprecated, ParityError::CannotUpdateDeprecatedSkill);
     require!(
-        new_version.len() <= MAX_SKILL_VERSION_LEN,
+        new_version.len() <= MAX_SKILL_VERSION_LEN,
+        ParityError::SkillVersionTooLong
+    );
+    require!(
+        new_description.len() <= MAX_SKILL_DESC_LEN,
+        ParityError::SkillDescriptionTooLong
+    );
+
+    skill.version = new_version;
+    skill.description = new_description;
+    skill.updated_at = clock.unix_timestamp;
+
+    msg!("Skill updated: {}", skill.name);
+    Ok(())
+}
+
+pub fn deprecate_skill(ctx: Context<DeprecateSkill>) -> Result<()> {
+    let skill = &mut ctx.accounts.skill_entry;
+    let clock = Clock::get()?;
+
+    require!(!skill.is_deprecated, ParityError::SkillAlreadyDeprecated);
+
+    skill.is_deprecated = true;
+    skill.updated_at = clock.unix_timestamp;
+
+    msg!("Skill deprecated: {}", skill.name);
+    Ok(())
+}
+
+#[derive(Accounts)]
+#[instruction(name: String)]
+pub struct RegisterSkill<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+
