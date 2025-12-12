@@ -92,4 +92,45 @@ pub struct RegisterSkill<'info> {
         bump = registry.bump
     )]
     pub registry: Account<'info, Registry>,
-
+
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + SkillEntry::INIT_SPACE,
+        seeds = [b"skill", name.as_bytes()],
+        bump
+    )]
+    pub skill_entry: Account<'info, SkillEntry>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateSkill<'info> {
+    #[account(
+        constraint = authority.key() == skill_entry.authority @ ParityError::UnauthorizedAuditor
+    )]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"skill", skill_entry.name.as_bytes()],
+        bump = skill_entry.bump
+    )]
+    pub skill_entry: Account<'info, SkillEntry>,
+}
+
+#[derive(Accounts)]
+pub struct DeprecateSkill<'info> {
+    #[account(
+        constraint = authority.key() == skill_entry.authority @ ParityError::UnauthorizedAuditor
+    )]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"skill", skill_entry.name.as_bytes()],
+        bump = skill_entry.bump
+    )]
+    pub skill_entry: Account<'info, SkillEntry>,
+}
