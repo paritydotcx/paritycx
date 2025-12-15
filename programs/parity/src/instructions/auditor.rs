@@ -48,4 +48,54 @@ pub fn update_auditor_status(
     auditor.updated_at = clock.unix_timestamp;
 
     msg!(
-        "Auditor {} status updated: active={}",
+        "Auditor {} status updated: active={}",
+        auditor.name,
+        is_active
+    );
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct RegisterAuditor<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + AuditorAccount::INIT_SPACE,
+        seeds = [b"auditor", authority.key().as_ref()],
+        bump
+    )]
+    pub auditor_account: Account<'info, AuditorAccount>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct UpdateAuditorStatus<'info> {
+    #[account(
+        constraint = authority.key() == registry.authority @ ParityError::UnauthorizedAuditor
+    )]
+    pub authority: Signer<'info>,
+
+    #[account(
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+
+    #[account(
+        mut,
+        seeds = [b"auditor", auditor_account.authority.as_ref()],
+        bump = auditor_account.bump
+    )]
+    pub auditor_account: Account<'info, AuditorAccount>,
+}
