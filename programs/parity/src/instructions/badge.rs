@@ -81,4 +81,31 @@ pub struct CreateVerificationBadge<'info> {
         init,
         payer = authority,
         space = 8 + VerificationBadge::INIT_SPACE,
-        seeds = [b"badge", program_entry.key().as_ref()],
+        seeds = [b"badge", program_entry.key().as_ref()],
+        bump
+    )]
+    pub verification_badge: Account<'info, VerificationBadge>,
+
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct RevokeVerificationBadge<'info> {
+    #[account(
+        constraint = authority.key() == registry.authority @ ParityError::UnauthorizedAuditor
+    )]
+    pub authority: Signer<'info>,
+
+    #[account(
+        seeds = [b"registry"],
+        bump = registry.bump
+    )]
+    pub registry: Account<'info, Registry>,
+
+    #[account(
+        mut,
+        seeds = [b"badge", verification_badge.program_entry.as_ref()],
+        bump = verification_badge.bump
+    )]
+    pub verification_badge: Account<'info, VerificationBadge>,
+}
