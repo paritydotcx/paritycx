@@ -53,4 +53,32 @@ pub fn revoke_verification_badge(ctx: Context<RevokeVerificationBadge>) -> Resul
     require!(!badge.is_revoked, ParityError::BadgeAlreadyRevoked);
 
     badge.is_revoked = true;
-
+
+    msg!("Verification badge revoked for program {}", badge.program_entry);
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct CreateVerificationBadge<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+
+    #[account(
+        seeds = [b"registry"],
+        bump = registry.bump,
+        constraint = authority.key() == registry.authority @ ParityError::UnauthorizedAuditor
+    )]
+    pub registry: Account<'info, Registry>,
+
+    #[account(
+        seeds = [b"program", program_entry.program_hash.as_ref()],
+        bump = program_entry.bump,
+        constraint = program_entry.is_verified @ ParityError::ProgramNotRegistered
+    )]
+    pub program_entry: Account<'info, ProgramEntry>,
+
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + VerificationBadge::INIT_SPACE,
+        seeds = [b"badge", program_entry.key().as_ref()],
