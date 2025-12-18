@@ -97,4 +97,32 @@ pub mod parity {
     }
 
     pub fn update_auditor_status(
-        ctx: Context<UpdateAuditorStatus>,
+        ctx: Context<UpdateAuditorStatus>,
+        is_active: bool,
+    ) -> Result<()> {
+        instructions::auditor::update_auditor_status(ctx, is_active)
+    }
+
+    pub fn create_verification_badge(
+        ctx: Context<CreateVerificationBadge>,
+        tier: VerificationTier,
+        expires_at: i64,
+    ) -> Result<()> {
+        instructions::badge::create_verification_badge(ctx, tier, expires_at)
+    }
+
+    pub fn revoke_verification_badge(ctx: Context<RevokeVerificationBadge>) -> Result<()> {
+        instructions::badge::revoke_verification_badge(ctx)
+    }
+
+    pub fn submit_context_pattern(
+        ctx: Context<SubmitContextPattern>,
+        pattern_id: String,
+        severity: Severity,
+        pattern_type: PatternType,
+        description: String,
+        detection_rule: String,
+    ) -> Result<()> {
+        instructions::context::submit_context_pattern(
+            ctx,
+            pattern_id,
