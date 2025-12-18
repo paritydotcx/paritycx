@@ -39,4 +39,33 @@ pub mod parity {
     ) -> Result<()> {
         instructions::analysis::submit_analysis(
             ctx,
-            score,
+            score,
+            findings_hash,
+            skills_used,
+            findings_count,
+        )
+    }
+
+    pub fn update_analysis(
+        ctx: Context<UpdateAnalysis>,
+        new_score: u8,
+        new_findings_hash: [u8; 32],
+        new_findings_count: AnalysisFindingsCount,
+    ) -> Result<()> {
+        instructions::analysis::update_analysis(
+            ctx,
+            new_score,
+            new_findings_hash,
+            new_findings_count,
+        )
+    }
+
+    pub fn register_skill(
+        ctx: Context<RegisterSkill>,
+        name: String,
+        version: String,
+        description: String,
+        skill_type: SkillType,
+    ) -> Result<()> {
+        instructions::skill_registry::register_skill(
+            ctx,
