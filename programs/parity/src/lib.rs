@@ -68,4 +68,33 @@ pub mod parity {
         skill_type: SkillType,
     ) -> Result<()> {
         instructions::skill_registry::register_skill(
-            ctx,
+            ctx,
+            name,
+            version,
+            description,
+            skill_type,
+        )
+    }
+
+    pub fn update_skill(
+        ctx: Context<UpdateSkill>,
+        new_version: String,
+        new_description: String,
+    ) -> Result<()> {
+        instructions::skill_registry::update_skill(ctx, new_version, new_description)
+    }
+
+    pub fn deprecate_skill(ctx: Context<DeprecateSkill>) -> Result<()> {
+        instructions::skill_registry::deprecate_skill(ctx)
+    }
+
+    pub fn register_auditor(
+        ctx: Context<RegisterAuditor>,
+        name: String,
+        credentials_uri: String,
+    ) -> Result<()> {
+        instructions::auditor::register_auditor(ctx, name, credentials_uri)
+    }
+
+    pub fn update_auditor_status(
+        ctx: Context<UpdateAuditorStatus>,
