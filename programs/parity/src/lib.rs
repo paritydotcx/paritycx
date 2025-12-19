@@ -125,4 +125,18 @@ pub mod parity {
     ) -> Result<()> {
         instructions::context::submit_context_pattern(
             ctx,
-            pattern_id,
+            pattern_id,
+            severity,
+            pattern_type,
+            description,
+            detection_rule,
+        )
+    }
+
+    pub fn update_registry_config(
+        ctx: Context<UpdateRegistryConfig>,
+        new_config: RegistryConfig,
+    ) -> Result<()> {
+        instructions::registry::update_registry_config(ctx, new_config)
+    }
+}
