@@ -185,4 +185,66 @@ pub const ANCHOR_PATTERNS: &[FrameworkPattern] = &[
         framework: "anchor",
         pattern_name: "error-handling",
         description: "Custom error definitions with require! macro for validation",
-        example_code: r#"require!(amount > 0, MyError::InvalidAmount);"#,
+        example_code: r#"require!(amount > 0, MyError::InvalidAmount);"#,
+    },
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "close-account",
+        description: "Safe account closure with lamport drain and data zeroing",
+        example_code: r#"#[account(mut, close = destination, has_one = authority)]"#,
+    },
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "event-emission",
+        description: "Structured event emission for off-chain indexing",
+        example_code: r#"emit!(TransferEvent { from: ctx.accounts.from.key(), to: ctx.accounts.to.key(), amount });"#,
+    },
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "checked-math",
+        description: "Overflow-safe arithmetic using checked operations",
+        example_code: r#"let result = a.checked_add(b).ok_or(MyError::Overflow)?;"#,
+    },
+];
+
+pub fn get_rules_for_pattern_type(pattern_type: PatternType) -> Vec<&'static VulnerabilityRule> {
+    VULNERABILITY_RULES
+        .iter()
+        .filter(|rule| rule.pattern_type == pattern_type)
+        .collect()
+}
+
+pub fn get_findings_by_severity(severity: Severity) -> Vec<&'static AuditFinding> {
+    CURATED_AUDIT_FINDINGS
+        .iter()
+        .filter(|finding| finding.severity == severity)
+        .collect()
+}
+
+pub fn get_framework_patterns(framework: &str) -> Vec<&'static FrameworkPattern> {
+    ANCHOR_PATTERNS
+        .iter()
+        .filter(|pattern| pattern.framework == framework)
+        .collect()
+}
+
+pub fn calculate_risk_score(findings: &[&AuditFinding]) -> u8 {
+    if findings.is_empty() {
+        return 100;
+    }
+
+    let mut score: i32 = 100;
+
+    for finding in findings {
+        let penalty = match finding.severity {
+            Severity::Critical => 25,
+            Severity::High => 15,
+            Severity::Medium => 8,
+            Severity::Info => 3,
+            Severity::Pass => 0,
+        };
+        score = score.saturating_sub(penalty);
+    }
+
+    score.max(0) as u8
+}
