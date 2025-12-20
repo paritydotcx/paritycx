@@ -59,4 +59,67 @@ pub const VULNERABILITY_RULES: &[VulnerabilityRule] = &[
         description: "Close account instruction does not properly drain lamports and zero data",
         detection_hint: "Check close = target constraint or manual lamport transfer and data zeroing",
     },
-    VulnerabilityRule {
+    VulnerabilityRule {
+        id: "type-cosplay",
+        severity: Severity::Critical,
+        pattern_type: PatternType::TypeCosplay,
+        description: "Account can be substituted with a different account type due to missing discriminator check",
+        detection_hint: "Ensure all accounts use Anchor discriminators via Account<> wrapper",
+    },
+    VulnerabilityRule {
+        id: "reinitialization-attack",
+        severity: Severity::Critical,
+        pattern_type: PatternType::ReinitiallizationAttack,
+        description: "Account can be re-initialized by calling init instruction multiple times",
+        detection_hint: "Use init_if_needed with care or add is_initialized flag checks",
+    },
+    VulnerabilityRule {
+        id: "owner-check",
+        severity: Severity::High,
+        pattern_type: PatternType::OwnerCheck,
+        description: "Account owner is not validated, allowing cross-program account injection",
+        detection_hint: "Verify owner field matches expected program ID in constraints",
+    },
+];
+
+pub struct AuditFinding {
+    pub source: &'static str,
+    pub vulnerability_class: &'static str,
+    pub severity: Severity,
+    pub description: &'static str,
+    pub fix_pattern: &'static str,
+}
+
+pub const CURATED_AUDIT_FINDINGS: &[AuditFinding] = &[
+    AuditFinding {
+        source: "OtterSec Audit DB",
+        vulnerability_class: "Access Control",
+        severity: Severity::Critical,
+        description: "Admin functions callable by any signer due to missing authority validation",
+        fix_pattern: "Add has_one = authority constraint to admin instruction accounts",
+    },
+    AuditFinding {
+        source: "Sec3 Auto-Audit",
+        vulnerability_class: "Integer Overflow",
+        severity: Severity::High,
+        description: "Token amount calculation overflows on large deposits",
+        fix_pattern: "Replace arithmetic operators with checked_mul and checked_div",
+    },
+    AuditFinding {
+        source: "Neodyme Research",
+        vulnerability_class: "PDA Validation",
+        severity: Severity::Critical,
+        description: "Vault PDA seeds include user-supplied string without length validation",
+        fix_pattern: "Limit seed input length and use canonical bump in derivation",
+    },
+    AuditFinding {
+        source: "OtterSec Audit DB",
+        vulnerability_class: "CPI Safety",
+        severity: Severity::Critical,
+        description: "Token program invocation uses unchecked AccountInfo instead of typed Program",
+        fix_pattern: "Use Program<'info, Token> and CpiContext for all CPI calls",
+    },
+    AuditFinding {
+        source: "Sec3 Auto-Audit",
+        vulnerability_class: "State Management",
+        severity: Severity::High,
