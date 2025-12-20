@@ -122,4 +122,67 @@ pub const CURATED_AUDIT_FINDINGS: &[AuditFinding] = &[
     AuditFinding {
         source: "Sec3 Auto-Audit",
         vulnerability_class: "State Management",
-        severity: Severity::High,
+        severity: Severity::High,
+        description: "Protocol state account not validated in governance instruction",
+        fix_pattern: "Add seeds and bump constraints with has_one for state references",
+    },
+    AuditFinding {
+        source: "Neodyme Research",
+        vulnerability_class: "Reentrancy",
+        severity: Severity::Critical,
+        description: "State update occurs after CPI call allowing reentrancy via callback",
+        fix_pattern: "Follow checks-effects-interactions pattern: update state before CPI",
+    },
+    AuditFinding {
+        source: "OtterSec Audit DB",
+        vulnerability_class: "Close Account",
+        severity: Severity::High,
+        description: "Account close does not zero data, leaving stale data readable",
+        fix_pattern: "Zero all account data bytes after transferring lamports on close",
+    },
+    AuditFinding {
+        source: "Sec3 Auto-Audit",
+        vulnerability_class: "Signer Verification",
+        severity: Severity::Critical,
+        description: "Multisig threshold check uses >= instead of > allowing single-signer bypass",
+        fix_pattern: "Ensure threshold comparison matches intended quorum logic",
+    },
+];
+
+pub struct FrameworkPattern {
+    pub framework: &'static str,
+    pub pattern_name: &'static str,
+    pub description: &'static str,
+    pub example_code: &'static str,
+}
+
+pub const ANCHOR_PATTERNS: &[FrameworkPattern] = &[
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "account-initialization",
+        description: "Correct account initialization with space calculation and PDA seeds",
+        example_code: r#"#[account(init, payer = user, space = 8 + MyAccount::INIT_SPACE, seeds = [b"seed", user.key().as_ref()], bump)]"#,
+    },
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "pda-derivation",
+        description: "Deterministic PDA derivation with canonical bump storage",
+        example_code: r#"let (pda, bump) = Pubkey::find_program_address(&[b"vault", owner.as_ref()], program_id);"#,
+    },
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "cpi-invocation",
+        description: "Safe cross-program invocation using CpiContext and typed program accounts",
+        example_code: r#"let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), Transfer { from, to, authority });"#,
+    },
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "access-control",
+        description: "Authority validation using has_one and constraint macros",
+        example_code: r#"#[account(mut, has_one = authority, seeds = [b"config"], bump = config.bump)]"#,
+    },
+    FrameworkPattern {
+        framework: "anchor",
+        pattern_name: "error-handling",
+        description: "Custom error definitions with require! macro for validation",
+        example_code: r#"require!(amount > 0, MyError::InvalidAmount);"#,
