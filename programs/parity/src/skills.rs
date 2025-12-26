@@ -97,4 +97,64 @@ pub const BUILTIN_SKILLS: &[SkillDefinition] = &[
             },
             SkillOutput {
                 name: "score",
-                output_type: "number",
+                output_type: "number",
+            },
+        ],
+    },
+    SkillDefinition {
+        name: "gas-optimization",
+        version: "1.0.0",
+        description: "Compute unit optimization analysis for Solana programs targeting reduced transaction costs and improved throughput",
+        skill_type: SkillType::GasOptimization,
+        steps: &[
+            "Analyze account data layout for packing efficiency",
+            "Check for unnecessary account reallocations",
+            "Identify redundant deserialization operations",
+            "Measure instruction handler compute unit consumption",
+            "Suggest data structure optimizations for reduced rent",
+            "Evaluate CPI overhead and suggest batching strategies",
+        ],
+        inputs: &[
+            SkillInput {
+                name: "program",
+                input_type: "file",
+                required: true,
+                default_value: None,
+            },
+            SkillInput {
+                name: "framework",
+                input_type: "string",
+                required: false,
+                default_value: Some("anchor"),
+            },
+        ],
+        outputs: &[
+            SkillOutput {
+                name: "findings",
+                output_type: "Finding[]",
+            },
+            SkillOutput {
+                name: "compute_units",
+                output_type: "number",
+            },
+        ],
+    },
+    SkillDefinition {
+        name: "deep-audit",
+        version: "1.0.0",
+        description: "Multi-pass deep audit combining security-audit, best-practices, and gas-optimization with cross-skill correlation and optimized code generation",
+        skill_type: SkillType::DeepAudit,
+        steps: &[
+            "Execute security-audit skill and collect findings",
+            "Execute best-practices skill and collect findings",
+            "Execute gas-optimization skill and collect findings",
+            "Correlate findings across skills for compound vulnerabilities",
+            "Generate risk-prioritized remediation plan",
+            "Produce optimized code artifact with all fixes applied",
+        ],
+        inputs: &[
+            SkillInput {
+                name: "program",
+                input_type: "file",
+                required: true,
+                default_value: None,
