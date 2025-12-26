@@ -157,4 +157,43 @@ pub const BUILTIN_SKILLS: &[SkillDefinition] = &[
                 name: "program",
                 input_type: "file",
                 required: true,
-                default_value: None,
+                default_value: None,
+            },
+            SkillInput {
+                name: "framework",
+                input_type: "string",
+                required: false,
+                default_value: Some("anchor"),
+            },
+        ],
+        outputs: &[
+            SkillOutput {
+                name: "findings",
+                output_type: "Finding[]",
+            },
+            SkillOutput {
+                name: "score",
+                output_type: "number",
+            },
+            SkillOutput {
+                name: "optimized_code",
+                output_type: "string",
+            },
+        ],
+    },
+];
+
+pub fn get_skill_by_name(name: &str) -> Option<&'static SkillDefinition> {
+    BUILTIN_SKILLS.iter().find(|s| s.name == name)
+}
+
+pub fn list_skill_names() -> Vec<&'static str> {
+    BUILTIN_SKILLS.iter().map(|s| s.name).collect()
+}
+
+pub fn get_skills_by_type(skill_type: SkillType) -> Vec<&'static SkillDefinition> {
+    BUILTIN_SKILLS
+        .iter()
+        .filter(|s| s.skill_type == skill_type)
+        .collect()
+}
