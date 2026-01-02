@@ -54,4 +54,42 @@ export interface AnalysisResult {
     skills: string[];
     metadata: AnalysisMetadata;
 }
+
+export interface AnalysisMetadata {
+    framework: string;
+    programId?: string;
+    analyzedAt: string;
+    duration: number;
+}
+
+export interface Finding {
+    severity: FindingSeverity;
+    title: string;
+    location: FindingLocation;
+    description: string;
+    recommendation: string;
+    pattern: string;
+}
+
+export interface FindingLocation {
+    file: string;
+    line: number;
+    instruction?: string;
+}
+
+export interface SkillDefinition {
+    name: string;
+    version: string;
+    description: string;
+    inputs: SkillInput[];
+    outputs: SkillOutput[];
+    steps?: string[];
+}
+
+export interface SkillInput {
+    name: string;
+    type: string;
+    required: boolean;
+    default?: string;
+}
 
