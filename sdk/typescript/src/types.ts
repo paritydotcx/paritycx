@@ -130,4 +130,33 @@ export interface AuditFindingEntry {
 export interface FrameworkPatternEntry {
     framework: string;
     patternName: string;
-    description: string;
+    description: string;
+    exampleCode: string;
+}
+
+export interface ProgramEntry {
+    owner: string;
+    programHash: string;
+    framework: Framework;
+    metadataUri: string;
+    registeredAt: number;
+    analysisCount: number;
+    latestScore: number;
+    isVerified: boolean;
+}
+
+export interface AuditorEntry {
+    authority: string;
+    name: string;
+    credentialsUri: string;
+    totalAnalyses: number;
+    averageScore: number;
+    isActive: boolean;
+}
+
+export interface BadgeEntry {
+    programEntry: string;
+    issuer: string;
+    tier: VerificationTier;
+    scoreAtIssuance: number;
+    issuedAt: number;
