@@ -92,4 +92,42 @@ export interface SkillInput {
     required: boolean;
     default?: string;
 }
-
+
+export interface SkillOutput {
+    name: string;
+    type: string;
+}
+
+export interface ContextQuery {
+    pattern?: string;
+    framework?: Framework;
+    severity?: FindingSeverity;
+    patternType?: PatternType;
+}
+
+export interface ContextResult {
+    rules: StaticRule[];
+    auditFindings: AuditFindingEntry[];
+    frameworkPatterns: FrameworkPatternEntry[];
+}
+
+export interface StaticRule {
+    id: string;
+    severity: FindingSeverity;
+    patternType: PatternType;
+    description: string;
+    detectionHint: string;
+}
+
+export interface AuditFindingEntry {
+    source: string;
+    vulnerabilityClass: string;
+    severity: FindingSeverity;
+    description: string;
+    fixPattern: string;
+}
+
+export interface FrameworkPatternEntry {
+    framework: string;
+    patternName: string;
+    description: string;
