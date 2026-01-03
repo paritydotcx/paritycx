@@ -159,4 +159,32 @@ export interface BadgeEntry {
     issuer: string;
     tier: VerificationTier;
     scoreAtIssuance: number;
-    issuedAt: number;
+    issuedAt: number;
+    expiresAt: number;
+    isRevoked: boolean;
+}
+
+export interface RegistryStats {
+    totalPrograms: number;
+    totalAnalyses: number;
+    totalSkills: number;
+    totalAuditors: number;
+    totalPatterns: number;
+}
+
+export interface CliOptions {
+    framework: Framework;
+    skills: string[];
+    minScore: number;
+    failOn: FindingSeverity[];
+    output: OutputFormat;
+}
+
+export interface AnalysisFindingsCount {
+    critical: number;
+    high: number;
+    medium: number;
+    info: number;
+    pass: number;
+    total: number;
+}
