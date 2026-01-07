@@ -41,4 +41,37 @@ export class ParityClient {
             baseURL: this.config.baseUrl,
             timeout: this.config.timeout,
             headers: {
-                Authorization: `Bearer ${this.config.apiKey}`,
+                Authorization: `Bearer ${this.config.apiKey}`,
+                "Content-Type": "application/json",
+                "X-Parity-SDK-Version": API_VERSION,
+                "User-Agent": `parity-sdk-ts/${API_VERSION}`,
+            },
+        });
+
+        this.httpClient.interceptors.response.use(
+            (response) => response,
+            async (error: AxiosError) => {
+                const config = error.config as any;
+                if (!config || !config._retryCount) {
+                    config._retryCount = 0;
+                }
+
+                if (
+                    config._retryCount < this.config.retries &&
+                    error.response &&
+                    error.response.status >= 500
+                ) {
+                    config._retryCount += 1;
+                    const delay = this.config.retryDelay * Math.pow(2, config._retryCount - 1);
+                    await new Promise((resolve) => setTimeout(resolve, delay));
+                    return this.httpClient(config);
+                }
+
+                return Promise.reject(error);
+            }
+        );
+
+        this.skills = new SkillsApi(this.httpClient);
+        this.context = new ContextApi(this.httpClient);
+        this.engine = new AnalysisEngine(this.httpClient, this.skills, this.context);
+    }
