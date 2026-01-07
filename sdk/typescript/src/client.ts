@@ -74,4 +74,37 @@ export class ParityClient {
         this.skills = new SkillsApi(this.httpClient);
         this.context = new ContextApi(this.httpClient);
         this.engine = new AnalysisEngine(this.httpClient, this.skills, this.context);
-    }
+    }
+
+    async analyze(options: AnalyzeOptions): Promise<AnalysisResult> {
+        return this.engine.analyze(options);
+    }
+
+    async getProgram(programHash: string): Promise<ProgramEntry> {
+        const response = await this.httpClient.get(
+            `${ENDPOINTS.programs}/${programHash}`
+        );
+        return response.data;
+    }
+
+    async listPrograms(page: number = 1, limit: number = 20): Promise<ProgramEntry[]> {
+        const response = await this.httpClient.get(ENDPOINTS.programs, {
+            params: { page, limit },
+        });
+        return response.data;
+    }
+
+    async getRegistryStats(): Promise<RegistryStats> {
+        const response = await this.httpClient.get(`${ENDPOINTS.programs}/stats`);
+        return response.data;
+    }
+
+    async healthCheck(): Promise<{ status: string; version: string; uptime: number }> {
+        const response = await this.httpClient.get(ENDPOINTS.health);
+        return response.data;
+    }
+
+    getConfig(): Readonly<typeof this.config> {
+        return Object.freeze({ ...this.config });
+    }
+}
