@@ -41,4 +41,48 @@ export class SkillsApi {
 
         try {
             await this.get(name);
-            return true;
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async getChain(skillName: string): Promise<string[]> {
+        if (skillName === SKILL_NAMES.DEEP_AUDIT) {
+            return [
+                SKILL_NAMES.SECURITY_AUDIT,
+                SKILL_NAMES.BEST_PRACTICES,
+                SKILL_NAMES.GAS_OPTIMIZATION,
+            ];
+        }
+
+        return [skillName];
+    }
+
+    clearCache(): void {
+        this.cache.clear();
+    }
+
+    getBuiltinSkills(): typeof SKILL_NAMES {
+        return SKILL_NAMES;
+    }
+
+    async resolveSkills(skillNames: string[]): Promise<SkillDefinition[]> {
+        const resolved: SkillDefinition[] = [];
+        const expanded: string[] = [];
+
+        for (const name of skillNames) {
+            const chain = await this.getChain(name);
+            expanded.push(...chain);
+        }
+
+        const unique = [...new Set(expanded)];
+
+        for (const name of unique) {
+            const skill = await this.get(name);
+            resolved.push(skill);
+        }
+
+        return resolved;
+    }
+}
