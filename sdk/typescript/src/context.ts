@@ -43,4 +43,49 @@ export class ContextApi {
     }
 
     async getAuditFindings(severity?: FindingSeverity): Promise<AuditFindingEntry[]> {
-        const result = await this.get({ severity });
+        const result = await this.get({ severity });
+        return result.auditFindings;
+    }
+
+    async getFrameworkPatterns(framework: string): Promise<FrameworkPatternEntry[]> {
+        const result = await this.get({ framework: framework as any });
+        return result.frameworkPatterns;
+    }
+
+    getVulnerabilityCategories(): readonly string[] {
+        return VULNERABILITY_CATEGORIES;
+    }
+
+    calculateRiskScore(findings: AuditFindingEntry[]): number {
+        if (findings.length === 0) return 100;
+
+        let score = 100;
+        for (const finding of findings) {
+            const weight = SEVERITY_WEIGHTS[finding.severity] ?? 0;
+            score = Math.max(0, score - weight);
+        }
+        return score;
+    }
+
+    categorizeFindingsBySeverity(
+        findings: AuditFindingEntry[]
+    ): Record<FindingSeverity, AuditFindingEntry[]> {
+        const categorized: Record<FindingSeverity, AuditFindingEntry[]> = {
+            critical: [],
+            high: [],
+            medium: [],
+            info: [],
+            pass: [],
+        };
+
+        for (const finding of findings) {
+            categorized[finding.severity].push(finding);
+        }
+
+        return categorized;
+    }
+
+    clearCache(): void {
+        this.rulesCache = null;
+    }
+}
