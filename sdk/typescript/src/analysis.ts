@@ -81,4 +81,61 @@ export class AnalysisEngine {
             );
         }
 
-        if (options.minScore !== undefined && (options.minScore < 0 || options.minScore > 100)) {
+        if (options.minScore !== undefined && (options.minScore < 0 || options.minScore > 100)) {
+            throw new ParityValidationError("minScore must be between 0 and 100");
+        }
+    }
+
+    private readProgramSource(programPath: string): string {
+        const absolutePath = path.resolve(programPath);
+
+        if (!fs.existsSync(absolutePath)) {
+            throw new ParityValidationError(`Program file not found: ${absolutePath}`);
+        }
+
+        const stats = fs.statSync(absolutePath);
+        if (stats.size > MAX_PROGRAM_SIZE) {
+            throw new ParityValidationError(
+                `Program file exceeds maximum size of ${MAX_PROGRAM_SIZE} bytes`
+            );
+        }
+
+        return fs.readFileSync(absolutePath, "utf-8");
+    }
+
+    private detectFramework(source: string): string {
+        if (source.includes("#[program]") || source.includes("declare_id!")) {
+            return "anchor";
+        }
+        if (source.includes("entrypoint!")) {
+            return "native";
+        }
+        if (source.includes("@instruction") || source.includes("seahorse")) {
+            return "seahorse";
+        }
+        return "anchor";
+    }
+
+    private async validateSkills(skillNames: string[]): Promise<void> {
+        for (const name of skillNames) {
+            const isValid = await this.skills.validate(name);
+            if (!isValid) {
+                throw new ParityValidationError(`Unknown skill: ${name}`);
+            }
+        }
+    }
+
+    static countFindings(findings: Finding[]): AnalysisFindingsCount {
+        const count: AnalysisFindingsCount = {
+            critical: 0,
+            high: 0,
+            medium: 0,
+            info: 0,
+            pass: 0,
+            total: 0,
+        };
+
+        for (const finding of findings) {
+            count[finding.severity]++;
+            count.total++;
+        }
