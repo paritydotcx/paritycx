@@ -223,4 +223,60 @@ export class AnalysisEngine {
                                 fullDescription: { text: f.description },
                                 defaultConfiguration: {
                                     level: f.severity === "critical" || f.severity === "high" ? "error" : "warning",
-                                },
+                                },
+                            })),
+                        },
+                    },
+                    results: findings.map((f) => ({
+                        ruleId: f.pattern,
+                        level: f.severity === "critical" || f.severity === "high" ? "error" : "warning",
+                        message: { text: f.description },
+                        locations: [
+                            {
+                                physicalLocation: {
+                                    artifactLocation: { uri: f.location.file },
+                                    region: { startLine: f.location.line },
+                                },
+                            },
+                        ],
+                        fixes: [
+                            {
+                                description: { text: f.recommendation },
+                            },
+                        ],
+                    })),
+                    artifacts: [{ location: { uri: programPath } }],
+                },
+            ],
+        };
+    }
+}
+
+export class ParityValidationError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = "ParityValidationError";
+    }
+}
+
+export class AnalysisScoreError extends Error {
+    public readonly actualScore: number;
+    public readonly minScore: number;
+
+    constructor(message: string, actualScore: number, minScore: number) {
+        super(message);
+        this.name = "AnalysisScoreError";
+        this.actualScore = actualScore;
+        this.minScore = minScore;
+    }
+}
+
+export class AnalysisFindingsError extends Error {
+    public readonly findings: Finding[];
+
+    constructor(message: string, findings: Finding[]) {
+        super(message);
+        this.name = "AnalysisFindingsError";
+        this.findings = findings;
+    }
+}
