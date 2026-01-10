@@ -138,4 +138,46 @@ export class AnalysisEngine {
         for (const finding of findings) {
             count[finding.severity]++;
             count.total++;
-        }
+        }
+
+        return count;
+    }
+
+    static calculateScore(findings: Finding[]): number {
+        if (findings.length === 0) return 100;
+
+        let score = 100;
+        for (const finding of findings) {
+            const weight = SEVERITY_WEIGHTS[finding.severity] ?? 0;
+            score = Math.max(0, score - weight);
+        }
+        return score;
+    }
+
+    static generateSummary(findings: Finding[], score: number): string {
+        const counts = AnalysisEngine.countFindings(findings);
+        const parts: string[] = [];
+
+        if (counts.critical > 0) parts.push(`${counts.critical} critical`);
+        if (counts.high > 0) parts.push(`${counts.high} high`);
+        if (counts.medium > 0) parts.push(`${counts.medium} medium`);
+        if (counts.info > 0) parts.push(`${counts.info} info`);
+
+        if (parts.length === 0) {
+            return `Analysis complete with a perfect score of ${score}. No issues found.`;
+        }
+
+        return `Found ${parts.join(" and ")} severity issues. Overall score: ${score}/100.`;
+    }
+
+    static formatFindingsAsMarkdown(findings: Finding[]): string {
+        const lines: string[] = ["# Analysis Findings\n"];
+
+        const grouped: Record<FindingSeverity, Finding[]> = {
+            critical: [],
+            high: [],
+            medium: [],
+            info: [],
+            pass: [],
+        };
+
