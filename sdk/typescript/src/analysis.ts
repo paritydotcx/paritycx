@@ -180,4 +180,47 @@ export class AnalysisEngine {
             info: [],
             pass: [],
         };
-
+
+        for (const finding of findings) {
+            grouped[finding.severity].push(finding);
+        }
+
+        for (const severity of ["critical", "high", "medium", "info", "pass"] as FindingSeverity[]) {
+            const group = grouped[severity];
+            if (group.length === 0) continue;
+
+            lines.push(`## ${severity.toUpperCase()} (${group.length})\n`);
+
+            for (const finding of group) {
+                lines.push(`### ${finding.title}`);
+                lines.push(`- **Location**: ${finding.location.file}:${finding.location.line}`);
+                if (finding.location.instruction) {
+                    lines.push(`- **Instruction**: ${finding.location.instruction}`);
+                }
+                lines.push(`- **Pattern**: ${finding.pattern}`);
+                lines.push(`\n${finding.description}\n`);
+                lines.push(`**Recommendation**: ${finding.recommendation}\n`);
+            }
+        }
+
+        return lines.join("\n");
+    }
+
+    static formatFindingsAsSarif(findings: Finding[], programPath: string): object {
+        return {
+            $schema: "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+            version: "2.1.0",
+            runs: [
+                {
+                    tool: {
+                        driver: {
+                            name: "parity",
+                            version: "0.3.0",
+                            informationUri: "https://parity.cx",
+                            rules: findings.map((f) => ({
+                                id: f.pattern,
+                                shortDescription: { text: f.title },
+                                fullDescription: { text: f.description },
+                                defaultConfiguration: {
+                                    level: f.severity === "critical" || f.severity === "high" ? "error" : "warning",
+                                },
