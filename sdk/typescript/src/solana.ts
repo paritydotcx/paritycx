@@ -161,4 +161,113 @@ export class SolanaProvider {
         const frameworkByte = data.readUInt8(offset);
         offset += 1;
         const frameworkMap: Record<number, Framework> = {
-            0: "anchor",
+            0: "anchor",
+            1: "native",
+            2: "seahorse",
+            3: "steel",
+        };
+        const framework = frameworkMap[frameworkByte] ?? "anchor";
+
+        const uriLen = data.readUInt32LE(offset);
+        offset += 4;
+        const metadataUri = data.subarray(offset, offset + uriLen).toString("utf-8");
+        offset += uriLen;
+
+        const registeredAt = Number(data.readBigInt64LE(offset));
+        offset += 8;
+
+        offset += 8;
+
+        const analysisCount = data.readUInt32LE(offset);
+        offset += 4;
+
+        const latestScore = data.readUInt8(offset);
+        offset += 1;
+
+        const isVerified = data.readUInt8(offset) === 1;
+
+        return {
+            owner,
+            programHash,
+            framework,
+            metadataUri,
+            registeredAt,
+            analysisCount,
+            latestScore,
+            isVerified,
+        };
+    }
+
+    private deserializeAuditor(data: Buffer): AuditorEntry {
+        let offset = 8;
+        const authority = new PublicKey(data.subarray(offset, offset + 32)).toBase58();
+        offset += 32;
+
+        const nameLen = data.readUInt32LE(offset);
+        offset += 4;
+        const name = data.subarray(offset, offset + nameLen).toString("utf-8");
+        offset += nameLen;
+
+        const credLen = data.readUInt32LE(offset);
+        offset += 4;
+        const credentialsUri = data.subarray(offset, offset + credLen).toString("utf-8");
+        offset += credLen;
+
+        const totalAnalyses = Number(data.readBigUInt64LE(offset));
+        offset += 8;
+
+        const averageScore = Number(data.readBigUInt64LE(offset));
+        offset += 8;
+
+        const isActive = data.readUInt8(offset) === 1;
+
+        return {
+            authority,
+            name,
+            credentialsUri,
+            totalAnalyses,
+            averageScore,
+            isActive,
+        };
+    }
+
+    private deserializeBadge(data: Buffer): BadgeEntry {
+        let offset = 8;
+        const programEntry = new PublicKey(data.subarray(offset, offset + 32)).toBase58();
+        offset += 32;
+
+        const issuer = new PublicKey(data.subarray(offset, offset + 32)).toBase58();
+        offset += 32;
+
+        const tierByte = data.readUInt8(offset);
+        offset += 1;
+        const tierMap: Record<number, VerificationTier> = {
+            0: "bronze",
+            1: "silver",
+            2: "gold",
+            3: "platinum",
+        };
+        const tier = tierMap[tierByte] ?? "bronze";
+
+        const scoreAtIssuance = data.readUInt8(offset);
+        offset += 1;
+
+        const issuedAt = Number(data.readBigInt64LE(offset));
+        offset += 8;
+
+        const expiresAt = Number(data.readBigInt64LE(offset));
+        offset += 8;
+
+        const isRevoked = data.readUInt8(offset) === 1;
+
+        return {
+            programEntry,
+            issuer,
+            tier,
+            scoreAtIssuance,
+            issuedAt,
+            expiresAt,
+            isRevoked,
+        };
+    }
+}
