@@ -92,4 +92,73 @@ export class SolanaProvider {
     }
 
     async fetchAuditor(authority: PublicKey): Promise<AuditorEntry | null> {
-        const [address] = await this.getAuditorAddress(authority);
+        const [address] = await this.getAuditorAddress(authority);
+
+        try {
+            const accountInfo = await this.connection.getAccountInfo(address);
+            if (!accountInfo) return null;
+
+            return this.deserializeAuditor(accountInfo.data);
+        } catch {
+            return null;
+        }
+    }
+
+    async fetchBadge(programEntryPubkey: PublicKey): Promise<BadgeEntry | null> {
+        const [address] = await this.getBadgeAddress(programEntryPubkey);
+
+        try {
+            const accountInfo = await this.connection.getAccountInfo(address);
+            if (!accountInfo) return null;
+
+            return this.deserializeBadge(accountInfo.data);
+        } catch {
+            return null;
+        }
+    }
+
+    async getRegistryStats(): Promise<{
+        totalPrograms: number;
+        totalAnalyses: number;
+        totalSkills: number;
+        totalAuditors: number;
+        totalPatterns: number;
+    }> {
+        const [registryAddress] = await this.getRegistryAddress();
+        const accountInfo = await this.connection.getAccountInfo(registryAddress);
+
+        if (!accountInfo) {
+            throw new Error("Registry account not found");
+        }
+
+        const data = accountInfo.data;
+        const offset = 8 + 32;
+        return {
+            totalPrograms: Number(data.readBigUInt64LE(offset)),
+            totalAnalyses: Number(data.readBigUInt64LE(offset + 8)),
+            totalSkills: Number(data.readBigUInt64LE(offset + 16)),
+            totalAuditors: Number(data.readBigUInt64LE(offset + 24)),
+            totalPatterns: Number(data.readBigUInt64LE(offset + 32)),
+        };
+    }
+
+    getConnection(): Connection {
+        return this.connection;
+    }
+
+    getProgramId(): PublicKey {
+        return this.programId;
+    }
+
+    private deserializeProgramEntry(data: Buffer): ProgramEntry {
+        let offset = 8;
+        const owner = new PublicKey(data.subarray(offset, offset + 32)).toBase58();
+        offset += 32;
+
+        const programHash = data.subarray(offset, offset + 32).toString("hex");
+        offset += 32;
+
+        const frameworkByte = data.readUInt8(offset);
+        offset += 1;
+        const frameworkMap: Record<number, Framework> = {
+            0: "anchor",
