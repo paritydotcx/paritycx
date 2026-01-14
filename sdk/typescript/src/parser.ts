@@ -124,4 +124,58 @@ export class SkillParser {
         if (!trimmed.startsWith("---")) {
             throw new Error("SKILL.md must start with YAML frontmatter (---)");
         }
-
+
+        const endIndex = trimmed.indexOf("---", 3);
+        if (endIndex === -1) {
+            throw new Error("SKILL.md frontmatter missing closing ---");
+        }
+
+        return {
+            frontmatter: trimmed.substring(3, endIndex).trim(),
+            body: trimmed.substring(endIndex + 3).trim(),
+        };
+    }
+
+    private static extractSteps(body: string): string[] {
+        const steps: string[] = [];
+        const lines = body.split("\n");
+
+        let inSteps = false;
+        for (const line of lines) {
+            if (line.toLowerCase().includes("## steps") || line.toLowerCase().includes("## analysis steps")) {
+                inSteps = true;
+                continue;
+            }
+
+            if (inSteps && line.startsWith("## ")) {
+                break;
+            }
+
+            if (inSteps) {
+                const match = line.match(/^\d+\.\s+(.+)/);
+                if (match) {
+                    steps.push(match[1].trim());
+                }
+            }
+        }
+
+        return steps;
+    }
+
+    private static generateBody(skill: SkillDefinition): string {
+        const lines: string[] = [];
+        lines.push(`# ${skill.name}`);
+        lines.push("");
+        lines.push(skill.description);
+        lines.push("");
+
+        if (skill.steps && skill.steps.length > 0) {
+            lines.push("## Steps");
+            skill.steps.forEach((step, i) => {
+                lines.push(`${i + 1}. ${step}`);
+            });
+        }
+
+        return lines.join("\n");
+    }
+}
