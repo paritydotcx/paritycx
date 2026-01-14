@@ -24,3 +24,6 @@ test-ledger/
 .idea/
 .vscode/
 *.iml
+
+# Logs
+*.log
