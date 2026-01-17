@@ -66,4 +66,72 @@ const BUILTIN_SKILLS: SkillDefinition[] = [
         inputs: [
             { name: "program", type: "file", required: true },
             { name: "framework", type: "string", required: false, default: "anchor" },
-        ],
+        ],
+        outputs: [
+            { name: "findings", type: "Finding[]" },
+            { name: "compute_units", type: "number" },
+        ],
+        steps: [
+            "Analyze account data layout for packing efficiency",
+            "Check for unnecessary account reallocations",
+            "Identify redundant deserialization operations",
+            "Measure instruction handler compute unit consumption",
+            "Suggest data structure optimizations for reduced rent",
+            "Evaluate CPI overhead and suggest batching strategies",
+        ],
+    },
+    {
+        name: "deep-audit",
+        version: "1.0.0",
+        description:
+            "Multi-pass deep audit combining security-audit, best-practices, and gas-optimization with cross-skill correlation and optimized code generation",
+        type: "comprehensive",
+        inputs: [
+            { name: "program", type: "file", required: true },
+            { name: "framework", type: "string", required: false, default: "anchor" },
+        ],
+        outputs: [
+            { name: "findings", type: "Finding[]" },
+            { name: "score", type: "number" },
+            { name: "optimized_code", type: "string" },
+        ],
+        steps: [
+            "Execute security-audit skill and collect findings",
+            "Execute best-practices skill and collect findings",
+            "Execute gas-optimization skill and collect findings",
+            "Correlate findings across skills for compound vulnerabilities",
+            "Generate risk-prioritized remediation plan",
+            "Produce optimized code artifact with all fixes applied",
+        ],
+    },
+];
+
+export class SkillsService {
+    private readonly skills: Map<string, SkillDefinition>;
+
+    constructor() {
+        this.skills = new Map();
+        for (const skill of BUILTIN_SKILLS) {
+            this.skills.set(skill.name, skill);
+        }
+    }
+
+    listSkills(): SkillDefinition[] {
+        return Array.from(this.skills.values());
+    }
+
+    getSkill(name: string): SkillDefinition | undefined {
+        return this.skills.get(name);
+    }
+
+    getSkillChain(name: string): string[] {
+        if (name === "deep-audit") {
+            return ["security-audit", "best-practices", "gas-optimization"];
+        }
+        return [name];
+    }
+
+    validateSkillName(name: string): boolean {
+        return this.skills.has(name);
+    }
+}
