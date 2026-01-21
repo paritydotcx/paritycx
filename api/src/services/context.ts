@@ -164,4 +164,115 @@ const AUDIT_FINDINGS: AuditFinding[] = [
         description: "Multisig threshold check uses >= instead of > allowing bypass",
         fixPattern: "Ensure threshold comparison matches intended quorum logic",
     },
-];
+];
+
+const FRAMEWORK_PATTERNS: FrameworkPattern[] = [
+    {
+        framework: "anchor",
+        patternName: "account-initialization",
+        description: "Correct account initialization with space calculation and PDA seeds",
+        exampleCode: `#[account(init, payer = user, space = 8 + MyAccount::INIT_SPACE, seeds = [b"seed", user.key().as_ref()], bump)]`,
+    },
+    {
+        framework: "anchor",
+        patternName: "pda-derivation",
+        description: "Deterministic PDA derivation with canonical bump storage",
+        exampleCode: `let (pda, bump) = Pubkey::find_program_address(&[b"vault", owner.as_ref()], program_id);`,
+    },
+    {
+        framework: "anchor",
+        patternName: "cpi-invocation",
+        description: "Safe cross-program invocation using CpiContext",
+        exampleCode: `let cpi_ctx = CpiContext::new(ctx.accounts.token_program.to_account_info(), Transfer { from, to, authority });`,
+    },
+    {
+        framework: "anchor",
+        patternName: "access-control",
+        description: "Authority validation using has_one and constraint macros",
+        exampleCode: `#[account(mut, has_one = authority, seeds = [b"config"], bump = config.bump)]`,
+    },
+    {
+        framework: "anchor",
+        patternName: "error-handling",
+        description: "Custom error definitions with require! macro for validation",
+        exampleCode: `require!(amount > 0, MyError::InvalidAmount);`,
+    },
+    {
+        framework: "anchor",
+        patternName: "close-account",
+        description: "Safe account closure with lamport drain and data zeroing",
+        exampleCode: `#[account(mut, close = destination, has_one = authority)]`,
+    },
+    {
+        framework: "anchor",
+        patternName: "event-emission",
+        description: "Structured event emission for off-chain indexing",
+        exampleCode: `emit!(TransferEvent { from: ctx.accounts.from.key(), to: ctx.accounts.to.key(), amount });`,
+    },
+    {
+        framework: "anchor",
+        patternName: "checked-math",
+        description: "Overflow-safe arithmetic using checked operations",
+        exampleCode: `let result = a.checked_add(b).ok_or(MyError::Overflow)?;`,
+    },
+];
+
+export class ContextService {
+    query(params: ContextQuery): ContextResult {
+        let rules = [...STATIC_RULES];
+        let findings = [...AUDIT_FINDINGS];
+        let patterns = [...FRAMEWORK_PATTERNS];
+
+        if (params.pattern) {
+            rules = rules.filter((r) => r.id === params.pattern || r.patternType === params.pattern);
+        }
+
+        if (params.severity) {
+            rules = rules.filter((r) => r.severity === params.severity);
+            findings = findings.filter((f) => f.severity === params.severity);
+        }
+
+        if (params.patternType) {
+            rules = rules.filter((r) => r.patternType === params.patternType);
+        }
+
+        if (params.framework) {
+            patterns = patterns.filter((p) => p.framework === params.framework);
+        }
+
+        return { rules, auditFindings: findings, frameworkPatterns: patterns };
+    }
+
+    getRules(patternType?: string): StaticRule[] {
+        if (patternType) {
+            return STATIC_RULES.filter((r) => r.patternType === patternType);
+        }
+        return STATIC_RULES;
+    }
+
+    getAuditFindings(severity?: string): AuditFinding[] {
+        if (severity) {
+            return AUDIT_FINDINGS.filter((f) => f.severity === severity);
+        }
+        return AUDIT_FINDINGS;
+    }
+
+    getFrameworkPatterns(framework: string): FrameworkPattern[] {
+        return FRAMEWORK_PATTERNS.filter((p) => p.framework === framework);
+    }
+
+    getVulnerabilityCategories(): string[] {
+        return [
+            "missing-signer-check",
+            "unchecked-arithmetic",
+            "unvalidated-pda",
+            "insecure-cpi",
+            "account-deserialization",
+            "rent-exemption",
+            "close-account",
+            "type-cosplay",
+            "reinitialization-attack",
+            "owner-check",
+        ];
+    }
+}
