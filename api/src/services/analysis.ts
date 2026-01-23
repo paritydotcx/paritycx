@@ -169,4 +169,79 @@ export class AnalysisService {
                                 recommendation:
                                     "Store the canonical bump in the PDA account data and validate it in subsequent instructions using seeds and bump constraints.",
                                 pattern: "unvalidated-pda",
-                            });
+                            });
+                        }
+                    }
+
+                    return findings;
+                },
+            },
+            {
+                pattern: "insecure-cpi",
+                check: (source: string): Finding[] => {
+                    const findings: Finding[] = [];
+                    const lines = source.split("\n");
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (
+                            line.includes("invoke(") &&
+                            !line.includes("invoke_signed") &&
+                            !line.includes("CpiContext")
+                        ) {
+                            const context = lines
+                                .slice(Math.max(0, i - 5), Math.min(lines.length, i + 5))
+                                .join("\n");
+                            if (!context.includes("program_id") && !context.includes("Program<")) {
+                                findings.push({
+                                    severity: "critical",
+                                    title: "CPI invocation without program ID verification",
+                                    location: { file: "program.rs", line: i + 1 },
+                                    description:
+                                        "A cross-program invocation (CPI) is performed without verifying the target program's ID. An attacker could substitute a malicious program.",
+                                    recommendation:
+                                        "Use typed Program<'info, T> accounts and CpiContext for all CPI calls to ensure program ID verification.",
+                                    pattern: "insecure-cpi",
+                                });
+                            }
+                        }
+                    }
+
+                    return findings;
+                },
+            },
+            {
+                pattern: "close-account-drain",
+                check: (source: string): Finding[] => {
+                    const findings: Finding[] = [];
+                    const lines = source.split("\n");
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (line.includes("close") && line.includes("fn")) {
+                            const closeBlock = lines.slice(i, Math.min(lines.length, i + 30)).join("\n");
+                            if (
+                                !closeBlock.includes("sol_memset") &&
+                                !closeBlock.includes("close =") &&
+                                !closeBlock.includes("0u8") &&
+                                closeBlock.includes("lamports")
+                            ) {
+                                findings.push({
+                                    severity: "high",
+                                    title: "Account close without data zeroing",
+                                    location: { file: "program.rs", line: i + 1, instruction: "close" },
+                                    description:
+                                        "The close instruction transfers lamports but does not zero the account data. Stale data remains readable and could be used in replay attacks.",
+                                    recommendation:
+                                        "Zero all account data bytes after transferring lamports, or use Anchor's close = constraint.",
+                                    pattern: "close-account-drain",
+                                });
+                            }
+                        }
+                    }
+
+                    return findings;
+                },
+            },
+            {
+                pattern: "owner-check",
