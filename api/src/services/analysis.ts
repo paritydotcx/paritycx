@@ -293,4 +293,78 @@ export class AnalysisService {
 
         if (framework === "anchor" && !source.includes("InitSpace")) {
             findings.push({
-                severity: "info",
+                severity: "info",
+                title: "Missing InitSpace derive macro",
+                location: { file: "program.rs", line: 1 },
+                description:
+                    "Account structs do not use #[derive(InitSpace)] for automatic space calculation. Manual space calculation is error-prone and can lead to account size mismatches.",
+                recommendation:
+                    "Add #[derive(InitSpace)] to all account structs and use T::INIT_SPACE in account initialization.",
+                pattern: "best-practices-init-space",
+            });
+        }
+
+        let hasEvents = false;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes("emit!")) {
+                hasEvents = true;
+                break;
+            }
+        }
+
+        if (!hasEvents && source.includes("#[program]")) {
+            findings.push({
+                severity: "info",
+                title: "No event emissions detected",
+                location: { file: "program.rs", line: 1 },
+                description:
+                    "The program does not emit any events. Events are essential for off-chain indexing, monitoring, and debugging.",
+                recommendation:
+                    "Define events using #[event] and emit them in instruction handlers using emit!(MyEvent { ... }).",
+                pattern: "best-practices-events",
+            });
+        }
+
+        if (!source.includes("#[error_code]") && source.includes("#[program]")) {
+            findings.push({
+                severity: "medium",
+                title: "No custom error definitions found",
+                location: { file: "program.rs", line: 1 },
+                description:
+                    "The program does not define custom error codes. Without descriptive errors, debugging failed transactions is significantly harder.",
+                recommendation:
+                    "Define a custom error enum with #[error_code] and descriptive #[msg()] attributes.",
+                pattern: "best-practices-errors",
+            });
+        }
+
+        return findings;
+    }
+
+    private checkGasOptimization(source: string): Finding[] {
+        const findings: Finding[] = [];
+        const lines = source.split("\n");
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+
+            if (line.includes("String") && line.includes("pub") && !line.includes("//")) {
+                findings.push({
+                    severity: "info",
+                    title: "String field in account data increases rent cost",
+                    location: { file: "program.rs", line: i + 1 },
+                    description:
+                        "String fields in account data require 4 bytes of length prefix plus the string content. For fixed-length data, consider using fixed-size byte arrays to reduce rent costs.",
+                    recommendation:
+                        "If the string has a known maximum length, consider using a fixed-size byte array [u8; N] instead.",
+                    pattern: "gas-optimization-string",
+                });
+            }
+
+            if (line.includes("Vec<") && line.includes("pub") && !line.includes("//")) {
+                findings.push({
+                    severity: "info",
+                    title: "Dynamic Vec allocation in account data",
+                    location: { file: "program.rs", line: i + 1 },
+                    description:
+                        "Vec fields require dynamic space allocation and 4-byte length prefix. For small, bounded collections, fixed-size arrays reduce compute and rent costs.",
