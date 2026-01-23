@@ -244,4 +244,53 @@ export class AnalysisService {
                 },
             },
             {
-                pattern: "owner-check",
+                pattern: "owner-check",
+                check: (source: string): Finding[] => {
+                    const findings: Finding[] = [];
+                    const lines = source.split("\n");
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (
+                            line.includes("AccountInfo") &&
+                            line.includes("pub") &&
+                            !line.includes("///")
+                        ) {
+                            const context = lines
+                                .slice(Math.max(0, i - 10), Math.min(lines.length, i + 3))
+                                .join("\n");
+                            if (
+                                !context.includes("owner") &&
+                                !context.includes("has_one") &&
+                                !context.includes("constraint") &&
+                                !context.includes("Program<") &&
+                                !context.includes("Signer<") &&
+                                !context.includes("SystemAccount<")
+                            ) {
+                                findings.push({
+                                    severity: "high",
+                                    title: "Missing owner check on account",
+                                    location: { file: "program.rs", line: i + 1 },
+                                    description:
+                                        "An account is accessed via raw AccountInfo without verifying its owner program. An attacker could pass an account owned by a different program with crafted data.",
+                                    recommendation:
+                                        "Use typed Account<'info, T> wrappers which automatically verify the owner, or add explicit owner checks.",
+                                    pattern: "owner-check",
+                                });
+                            }
+                        }
+                    }
+
+                    return findings;
+                },
+            },
+        ];
+    }
+
+    private checkBestPractices(source: string, framework: string): Finding[] {
+        const findings: Finding[] = [];
+        const lines = source.split("\n");
+
+        if (framework === "anchor" && !source.includes("InitSpace")) {
+            findings.push({
+                severity: "info",
