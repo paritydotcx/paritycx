@@ -367,4 +367,53 @@ export class AnalysisService {
                     title: "Dynamic Vec allocation in account data",
                     location: { file: "program.rs", line: i + 1 },
                     description:
-                        "Vec fields require dynamic space allocation and 4-byte length prefix. For small, bounded collections, fixed-size arrays reduce compute and rent costs.",
+                        "Vec fields require dynamic space allocation and 4-byte length prefix. For small, bounded collections, fixed-size arrays reduce compute and rent costs.",
+                    recommendation:
+                        "If the maximum size is known and small, consider using a fixed-size array instead of Vec.",
+                    pattern: "gas-optimization-vec",
+                });
+            }
+        }
+
+        return findings;
+    }
+
+    private calculateScore(findings: Finding[]): number {
+        if (findings.length === 0) return 100;
+
+        let score = 100;
+        for (const finding of findings) {
+            score = Math.max(0, score - (SEVERITY_WEIGHT[finding.severity] ?? 0));
+        }
+        return score;
+    }
+
+    private generateSummary(findings: Finding[], score: number): string {
+        const counts: Record<string, number> = {};
+        for (const f of findings) {
+            counts[f.severity] = (counts[f.severity] || 0) + 1;
+        }
+
+        const parts: string[] = [];
+        if (counts.critical) parts.push(`${counts.critical} critical`);
+        if (counts.high) parts.push(`${counts.high} high`);
+        if (counts.medium) parts.push(`${counts.medium} medium`);
+        if (counts.info) parts.push(`${counts.info} info`);
+
+        if (parts.length === 0) {
+            return `Analysis complete with a perfect score of ${score}. No issues found.`;
+        }
+
+        return `Found ${parts.join(" and ")} severity issues. Overall score: ${score}/100.`;
+    }
+
+    private findInstruction(lines: string[], lineIndex: number): string | undefined {
+        for (let i = lineIndex; i >= Math.max(0, lineIndex - 30); i--) {
+            const match = lines[i].match(/pub fn (\w+)/);
+            if (match) return match[1];
+        }
+        return undefined;
+    }
+
+    toSarif(result: AnalysisResult, programPath: string): object {
+        return {
