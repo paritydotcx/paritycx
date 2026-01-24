@@ -451,4 +451,43 @@ export class AnalysisService {
             ],
         };
     }
-
+
+    toMarkdown(result: AnalysisResult): string {
+        const lines: string[] = [];
+        lines.push(`# Parity Analysis Report\n`);
+        lines.push(`**Score**: ${result.score}/100\n`);
+        lines.push(`**Skills**: ${result.skills.join(", ")}\n`);
+        lines.push(`**Framework**: ${result.metadata.framework}\n`);
+        lines.push(`**Analyzed**: ${result.metadata.analyzedAt}\n`);
+        lines.push(`---\n`);
+        lines.push(`## Summary\n${result.summary}\n`);
+        lines.push(`## Findings (${result.findings.length})\n`);
+
+        for (const f of result.findings) {
+            lines.push(`### [${f.severity.toUpperCase()}] ${f.title}`);
+            lines.push(`- **Location**: ${f.location.file}:${f.location.line}`);
+            lines.push(`- **Pattern**: ${f.pattern}`);
+            lines.push(`\n${f.description}\n`);
+            lines.push(`> ${f.recommendation}\n`);
+        }
+
+        return lines.join("\n");
+    }
+
+    toText(result: AnalysisResult): string {
+        const lines: string[] = [];
+        lines.push(`Parity Analysis Report`);
+        lines.push(`Score: ${result.score}/100`);
+        lines.push(`Skills: ${result.skills.join(", ")}`);
+        lines.push(`${result.summary}`);
+        lines.push(`\nFindings:`);
+
+        for (const f of result.findings) {
+            lines.push(`  [${f.severity.toUpperCase()}] ${f.title} at ${f.location.file}:${f.location.line}`);
+            lines.push(`    ${f.description}`);
+            lines.push(`    Fix: ${f.recommendation}`);
+        }
+
+        return lines.join("\n");
+    }
+}
