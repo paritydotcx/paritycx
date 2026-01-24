@@ -416,4 +416,39 @@ export class AnalysisService {
     }
 
     toSarif(result: AnalysisResult, programPath: string): object {
-        return {
+        return {
+            $schema:
+                "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+            version: "2.1.0",
+            runs: [
+                {
+                    tool: {
+                        driver: {
+                            name: "parity",
+                            version: "0.3.0",
+                            informationUri: "https://parity.cx",
+                            rules: result.findings.map((f) => ({
+                                id: f.pattern,
+                                shortDescription: { text: f.title },
+                                fullDescription: { text: f.description },
+                            })),
+                        },
+                    },
+                    results: result.findings.map((f) => ({
+                        ruleId: f.pattern,
+                        level: f.severity === "critical" || f.severity === "high" ? "error" : "warning",
+                        message: { text: f.description },
+                        locations: [
+                            {
+                                physicalLocation: {
+                                    artifactLocation: { uri: programPath },
+                                    region: { startLine: f.location.line },
+                                },
+                            },
+                        ],
+                    })),
+                },
+            ],
+        };
+    }
+
