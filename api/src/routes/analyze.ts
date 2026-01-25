@@ -41,4 +41,47 @@ analyzeRouter.post("/", async (req: Request, res: Response, next: NextFunction) 
 
         if (output === "text") {
             res.type("text/plain").send(analysisService.toText(result));
-            return;
+            return;
+        }
+
+        res.json(result);
+    } catch (error) {
+        next(error);
+    }
+});
+
+analyzeRouter.post("/batch", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const batchSchema = z.object({
+            programs: z.array(
+                z.object({
+                    id: z.string(),
+                    program: z.string().min(1),
+                    framework: z.enum(["anchor", "native", "seahorse", "steel"]).default("anchor"),
+                    skills: z.array(z.string()).default(["security-audit"]),
+                })
+            ).min(1).max(10),
+        });
+
+        const parsed = batchSchema.safeParse(req.body);
+        if (!parsed.success) {
+            throw new AppError("Validation failed", 422, parsed.error.issues);
+        }
+
+        const analysisService = new AnalysisService();
+        const results = await Promise.all(
+            parsed.data.programs.map(async (entry) => {
+                const result = await analysisService.analyze(
+                    entry.program,
+                    entry.framework,
+                    entry.skills
+                );
+                return { id: entry.id, ...result };
+            })
+        );
+
+        res.json({ results });
+    } catch (error) {
+        next(error);
+    }
+});
