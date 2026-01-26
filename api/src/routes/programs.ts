@@ -54,4 +54,60 @@ programsRouter.get("/stats", async (_req: Request, res: Response, next: NextFunc
         res.json({
             totalPrograms,
             totalAnalyses,
-            totalSkills: 4,
+            totalSkills: 4,
+            totalAuditors: 0,
+            totalPatterns: 10,
+            verifiedCount,
+            averageScore: Math.round(averageScore * 100) / 100,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+programsRouter.get("/:hash", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { hash } = req.params;
+        const program = programStore.get(hash);
+
+        if (!program) {
+            throw new AppError(`Program with hash '${hash}' not found`, 404);
+        }
+
+        res.json(program);
+    } catch (error) {
+        next(error);
+    }
+});
+
+programsRouter.post("/", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { programHash, framework, metadataUri } = req.body;
+
+        if (!programHash || !framework) {
+            throw new AppError("programHash and framework are required", 422);
+        }
+
+        if (programStore.has(programHash)) {
+            throw new AppError("Program already registered", 409);
+        }
+
+        const program: StoredProgram = {
+            id: programHash,
+            owner: (req as any).userId || "anonymous",
+            programHash,
+            framework,
+            metadataUri: metadataUri || "",
+            registeredAt: new Date().toISOString(),
+            analysisCount: 0,
+            latestScore: 0,
+            isVerified: false,
+        };
+
+        programStore.set(programHash, program);
+
+        res.status(201).json(program);
+    } catch (error) {
+        next(error);
+    }
+});
