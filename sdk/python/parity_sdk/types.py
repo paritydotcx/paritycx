@@ -180,4 +180,49 @@ class ContextResult:
 class AnalysisFindingsCount:
     critical: int = 0
     high: int = 0
-    medium: int = 0
+    medium: int = 0
+    info: int = 0
+    pass_count: int = 0
+    total: int = 0
+
+
+@dataclass
+class ProgramEntry:
+    owner: str
+    program_hash: str
+    framework: str
+    metadata_uri: str
+    registered_at: int
+    analysis_count: int
+    latest_score: int
+    is_verified: bool
+
+
+@dataclass
+class AuditorEntry:
+    authority: str
+    name: str
+    credentials_uri: str
+    total_analyses: int
+    average_score: int
+    is_active: bool
+
+
+@dataclass
+class BadgeEntry:
+    program_entry: str
+    issuer: str
+    tier: str
+    score_at_issuance: int
+    issued_at: int
+    expires_at: int
+    is_revoked: bool
+
+
+@dataclass
+class RegistryStats:
+    total_programs: int
+    total_analyses: int
+    total_skills: int
+    total_auditors: int
+    total_patterns: int
