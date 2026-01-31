@@ -134,4 +134,50 @@ class SkillDefinition:
     outputs: list[SkillOutput]
     steps: Optional[list[str]] = None
 
-
+
+@dataclass
+class ContextQuery:
+    pattern: Optional[str] = None
+    framework: Optional[str] = None
+    severity: Optional[str] = None
+    pattern_type: Optional[str] = None
+
+
+@dataclass
+class StaticRule:
+    id: str
+    severity: str
+    pattern_type: str
+    description: str
+    detection_hint: str
+
+
+@dataclass
+class AuditFindingEntry:
+    source: str
+    vulnerability_class: str
+    severity: str
+    description: str
+    fix_pattern: str
+
+
+@dataclass
+class FrameworkPatternEntry:
+    framework: str
+    pattern_name: str
+    description: str
+    example_code: str
+
+
+@dataclass
+class ContextResult:
+    rules: list[StaticRule]
+    audit_findings: list[AuditFindingEntry]
+    framework_patterns: list[FrameworkPatternEntry]
+
+
+@dataclass
+class AnalysisFindingsCount:
+    critical: int = 0
+    high: int = 0
+    medium: int = 0
