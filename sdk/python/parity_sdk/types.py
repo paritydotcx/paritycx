@@ -88,4 +88,50 @@ class Finding:
 class AnalysisMetadata:
     framework: str
     analyzed_at: str
-    duration: int
+    duration: int
+    program_id: Optional[str] = None
+
+
+@dataclass
+class AnalysisResult:
+    score: int
+    findings: list[Finding]
+    summary: str
+    skills: list[str]
+    metadata: AnalysisMetadata
+
+
+@dataclass
+class AnalyzeOptions:
+    program: str
+    framework: str = "anchor"
+    skills: list[str] = field(default_factory=lambda: ["security-audit"])
+    output: str = "json"
+    min_score: Optional[int] = None
+    fail_on: Optional[list[str]] = None
+
+
+@dataclass
+class SkillInput:
+    name: str
+    type: str
+    required: bool
+    default: Optional[str] = None
+
+
+@dataclass
+class SkillOutput:
+    name: str
+    type: str
+
+
+@dataclass
+class SkillDefinition:
+    name: str
+    version: str
+    description: str
+    inputs: list[SkillInput]
+    outputs: list[SkillOutput]
+    steps: Optional[list[str]] = None
+
+
