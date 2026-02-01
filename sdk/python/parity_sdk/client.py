@@ -52,4 +52,60 @@ class ParityClient:
         return self._engine.analyze(options)
 
     def get_program(self, program_hash: str) -> ProgramEntry:
-        """Get a registered program by its hash."""
+        """Get a registered program by its hash."""
+        response = self._request("GET", f"{ENDPOINTS['programs']}/{program_hash}")
+        data = response.json()
+        return ProgramEntry(
+            owner=data["owner"],
+            program_hash=data["programHash"],
+            framework=data["framework"],
+            metadata_uri=data["metadataUri"],
+            registered_at=data["registeredAt"],
+            analysis_count=data["analysisCount"],
+            latest_score=data["latestScore"],
+            is_verified=data["isVerified"],
+        )
+
+    def list_programs(self, page: int = 1, limit: int = 20) -> list[ProgramEntry]:
+        """List registered programs with pagination."""
+        response = self._request(
+            "GET",
+            ENDPOINTS["programs"],
+            params={"page": page, "limit": limit},
+        )
+        data = response.json()
+        programs = data.get("data", data) if isinstance(data, dict) else data
+        return [
+            ProgramEntry(
+                owner=p["owner"],
+                program_hash=p["programHash"],
+                framework=p["framework"],
+                metadata_uri=p["metadataUri"],
+                registered_at=p["registeredAt"],
+                analysis_count=p["analysisCount"],
+                latest_score=p["latestScore"],
+                is_verified=p["isVerified"],
+            )
+            for p in programs
+        ]
+
+    def get_registry_stats(self) -> RegistryStats:
+        """Get registry-level statistics."""
+        response = self._request("GET", f"{ENDPOINTS['programs']}/stats")
+        data = response.json()
+        return RegistryStats(
+            total_programs=data["totalPrograms"],
+            total_analyses=data["totalAnalyses"],
+            total_skills=data["totalSkills"],
+            total_auditors=data["totalAuditors"],
+            total_patterns=data["totalPatterns"],
+        )
+
+    def health_check(self) -> dict:
+        """Check API server health."""
+        response = self._request("GET", ENDPOINTS["health"])
+        return response.json()
+
+    def _request(
+        self,
+        method: str,
