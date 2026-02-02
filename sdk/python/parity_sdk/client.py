@@ -145,4 +145,40 @@ class ParityClient:
                     continue
                 raise ParityConnectionError(
                     f"Connection failed: {e}"
-                ) from e
+                ) from e
+
+        raise ParityConnectionError(f"All {self._retries + 1} attempts failed") from last_error
+
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._http.close()
+
+    def __enter__(self) -> ParityClient:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
+
+
+class ParityApiError(Exception):
+    """Raised when the API returns an error response."""
+
+    def __init__(
+        self,
+        message: str,
+        status_code: int = 0,
+        response_body: str = "",
+    ) -> None:
+        super().__init__(message)
+        self.status_code = status_code
+        self.response_body = response_body
+
+
+class ParityConnectionError(Exception):
+    """Raised when a connection to the API cannot be established."""
+    pass
+
+
+class ParityValidationError(Exception):
+    """Raised when input validation fails."""
+    pass
