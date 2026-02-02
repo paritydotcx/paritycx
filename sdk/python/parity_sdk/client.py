@@ -108,4 +108,41 @@ class ParityClient:
 
     def _request(
         self,
-        method: str,
+        method: str,
+        path: str,
+        params: dict | None = None,
+        json_data: dict | None = None,
+    ) -> httpx.Response:
+        """Execute an HTTP request with retry logic."""
+        last_error: Exception | None = None
+
+        for attempt in range(self._retries + 1):
+            try:
+                response = self._http.request(
+                    method,
+                    path,
+                    params=params,
+                    json=json_data,
+                )
+                response.raise_for_status()
+                return response
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code >= 500 and attempt < self._retries:
+                    import time
+                    time.sleep(self._retry_delay * (2 ** attempt))
+                    last_error = e
+                    continue
+                raise ParityApiError(
+                    f"API request failed: {e.response.status_code}",
+                    status_code=e.response.status_code,
+                    response_body=e.response.text,
+                ) from e
+            except httpx.RequestError as e:
+                if attempt < self._retries:
+                    import time
+                    time.sleep(self._retry_delay * (2 ** attempt))
+                    last_error = e
+                    continue
+                raise ParityConnectionError(
+                    f"Connection failed: {e}"
+                ) from e
