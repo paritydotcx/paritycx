@@ -25,4 +25,32 @@ class SkillsApi:
             self._cache[skill.name] = skill
             skills.append(skill)
 
-        return skills
+        return skills
+
+    def get(self, name: str) -> SkillDefinition:
+        """Get a specific skill by name."""
+        cached = self._cache.get(name)
+        if cached is not None:
+            return cached
+
+        response = self._http.get(f"{ENDPOINTS['skills']}/{name}")
+        response.raise_for_status()
+        skill = self._parse_skill(response.json())
+        self._cache[name] = skill
+        return skill
+
+    def validate(self, name: str) -> bool:
+        """Check if a skill name is valid."""
+        valid_names = set(SKILL_NAMES.values())
+        if name in valid_names:
+            return True
+
+        try:
+            self.get(name)
+            return True
+        except httpx.HTTPStatusError:
+            return False
+
+    def get_chain(self, skill_name: str) -> list[str]:
+        """Get the execution chain for a skill."""
+        if skill_name == SKILL_NAMES["DEEP_AUDIT"]:
