@@ -6,7 +6,7 @@ from parity_sdk.types import SkillDefinition, SkillInput, SkillOutput
 from parity_sdk.constants import ENDPOINTS, SKILL_NAMES
 
 
-class SkillsApi:
+class SkillsApi:  # Query, cache, and resolve analysis skill definitions
     """Interface for querying and managing analysis skills."""
 
     def __init__(self, http: httpx.Client) -> None:
