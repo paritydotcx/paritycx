@@ -118,4 +118,65 @@ class AnalysisEngine:
                 count.pass_count += 1
             count.total += 1
         return count
-
+
+    @staticmethod
+    def calculate_score(findings: list[Finding]) -> int:
+        """Calculate a security score based on findings."""
+        if not findings:
+            return 100
+
+        score = 100
+        for finding in findings:
+            weight = SEVERITY_WEIGHTS.get(finding.severity, 0)
+            score = max(0, score - weight)
+        return score
+
+    @staticmethod
+    def generate_summary(findings: list[Finding], score: int) -> str:
+        """Generate a human-readable analysis summary."""
+        counts = AnalysisEngine.count_findings(findings)
+        parts: list[str] = []
+
+        if counts.critical > 0:
+            parts.append(f"{counts.critical} critical")
+        if counts.high > 0:
+            parts.append(f"{counts.high} high")
+        if counts.medium > 0:
+            parts.append(f"{counts.medium} medium")
+        if counts.info > 0:
+            parts.append(f"{counts.info} info")
+
+        if not parts:
+            return f"Analysis complete with a perfect score of {score}. No issues found."
+
+        return f"Found {' and '.join(parts)} severity issues. Overall score: {score}/100."
+
+    @staticmethod
+    def format_findings_markdown(findings: list[Finding]) -> str:
+        """Format findings as a Markdown report."""
+        lines: list[str] = ["# Analysis Findings\n"]
+
+        grouped: dict[str, list[Finding]] = {
+            "critical": [],
+            "high": [],
+            "medium": [],
+            "info": [],
+            "pass": [],
+        }
+
+        for finding in findings:
+            if finding.severity in grouped:
+                grouped[finding.severity].append(finding)
+
+        for severity in ("critical", "high", "medium", "info", "pass"):
+            group = grouped[severity]
+            if not group:
+                continue
+
+            lines.append(f"## {severity.upper()} ({len(group)})\n")
+
+            for finding in group:
+                lines.append(f"### {finding.title}")
+                lines.append(f"- **Location**: {finding.location.file}:{finding.location.line}")
+                if finding.location.instruction:
+                    lines.append(f"- **Instruction**: {finding.location.instruction}")
