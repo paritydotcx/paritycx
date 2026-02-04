@@ -12,7 +12,7 @@ from parity_sdk.types import (
 from parity_sdk.constants import ENDPOINTS, SEVERITY_WEIGHTS, VULNERABILITY_CATEGORIES
 
 
-class ContextApi:
+class ContextApi:  # Structured access to 500+ vulnerability patterns
     """Interface for the Parity Context Engine."""
 
     def __init__(self, http: httpx.Client) -> None:
