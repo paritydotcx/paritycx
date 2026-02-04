@@ -69,4 +69,53 @@ class AnalysisEngine:
                         instruction=f["location"].get("instruction"),
                     ),
                     description=f["description"],
-                    recommendation=f["recommendation"],
+                    recommendation=f["recommendation"],
+                    pattern=f["pattern"],
+                )
+                for f in data["findings"]
+            ],
+            summary=data["summary"],
+            skills=data["skills"],
+            metadata=AnalysisMetadata(
+                framework=data["metadata"]["framework"],
+                analyzed_at=data["metadata"]["analyzedAt"],
+                duration=data["metadata"]["duration"],
+                program_id=data["metadata"].get("programId"),
+            ),
+        )
+
+        if options.min_score is not None and result.score < options.min_score:
+            raise AnalysisScoreError(
+                f"Analysis score {result.score} is below the minimum threshold {options.min_score}",
+                actual_score=result.score,
+                min_score=options.min_score,
+            )
+
+        if options.fail_on:
+            failing = [f for f in result.findings if f.severity in options.fail_on]
+            if failing:
+                raise AnalysisFindingsError(
+                    f"Found {len(failing)} findings with severity: {', '.join(options.fail_on)}",
+                    findings=failing,
+                )
+
+        return result
+
+    @staticmethod
+    def count_findings(findings: list[Finding]) -> AnalysisFindingsCount:
+        """Count findings by severity level."""
+        count = AnalysisFindingsCount()
+        for finding in findings:
+            if finding.severity == "critical":
+                count.critical += 1
+            elif finding.severity == "high":
+                count.high += 1
+            elif finding.severity == "medium":
+                count.medium += 1
+            elif finding.severity == "info":
+                count.info += 1
+            elif finding.severity == "pass":
+                count.pass_count += 1
+            count.total += 1
+        return count
+
