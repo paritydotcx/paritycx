@@ -234,7 +234,7 @@ class AnalysisScoreError(Exception):
         self.min_score = min_score
 
 
-class AnalysisFindingsError(Exception):
+class AnalysisFindingsError(Exception):  # Severity-gated CI check error
     """Raised when findings match the fail-on severity filter."""
 
     def __init__(self, message: str, findings: list[Finding]) -> None:
