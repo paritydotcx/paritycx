@@ -179,4 +179,64 @@ class AnalysisEngine:
                 lines.append(f"### {finding.title}")
                 lines.append(f"- **Location**: {finding.location.file}:{finding.location.line}")
                 if finding.location.instruction:
-                    lines.append(f"- **Instruction**: {finding.location.instruction}")
+                    lines.append(f"- **Instruction**: {finding.location.instruction}")
+                lines.append(f"- **Pattern**: {finding.pattern}")
+                lines.append(f"\n{finding.description}\n")
+                lines.append(f"**Recommendation**: {finding.recommendation}\n")
+
+        return "\n".join(lines)
+
+    def _validate_options(self, options: AnalyzeOptions) -> None:
+        if not options.program:
+            raise ValueError("Program path is required")
+
+        if options.skills and len(options.skills) > MAX_SKILLS_PER_ANALYSIS:
+            raise ValueError(
+                f"Maximum {MAX_SKILLS_PER_ANALYSIS} skills per analysis, "
+                f"got {len(options.skills)}"
+            )
+
+        if options.min_score is not None and not (0 <= options.min_score <= 100):
+            raise ValueError("min_score must be between 0 and 100")
+
+    @staticmethod
+    def _read_program_source(program_path: str) -> str:
+        path = Path(program_path).resolve()
+
+        if not path.exists():
+            raise FileNotFoundError(f"Program file not found: {path}")
+
+        file_size = path.stat().st_size
+        if file_size > MAX_PROGRAM_SIZE:
+            raise ValueError(
+                f"Program file exceeds maximum size of {MAX_PROGRAM_SIZE} bytes"
+            )
+
+        return path.read_text(encoding="utf-8")
+
+    @staticmethod
+    def _detect_framework(source: str) -> str:
+        if "#[program]" in source or "declare_id!" in source:
+            return "anchor"
+        if "entrypoint!" in source:
+            return "native"
+        if "@instruction" in source or "seahorse" in source:
+            return "seahorse"
+        return "anchor"
+
+
+class AnalysisScoreError(Exception):
+    """Raised when analysis score is below the minimum threshold."""
+
+    def __init__(self, message: str, actual_score: int, min_score: int) -> None:
+        super().__init__(message)
+        self.actual_score = actual_score
+        self.min_score = min_score
+
+
+class AnalysisFindingsError(Exception):
+    """Raised when findings match the fail-on severity filter."""
+
+    def __init__(self, message: str, findings: list[Finding]) -> None:
+        super().__init__(message)
+        self.findings = findings
