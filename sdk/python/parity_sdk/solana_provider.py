@@ -41,4 +41,47 @@ class SolanaProvider:
         auditor_pubkey: Pubkey,
     ) -> tuple[Pubkey, int]:
         """Derive an analysis report PDA address."""
-        return Pubkey.find_program_address(
+        return Pubkey.find_program_address(
+            [
+                b"analysis",
+                bytes(program_entry_pubkey),
+                bytes(auditor_pubkey),
+            ],
+            self._program_id,
+        )
+
+    def get_skill_address(self, skill_name: str) -> tuple[Pubkey, int]:
+        """Derive a skill entry PDA address."""
+        return Pubkey.find_program_address(
+            [b"skill", skill_name.encode("utf-8")],
+            self._program_id,
+        )
+
+    def get_auditor_address(self, authority: Pubkey) -> tuple[Pubkey, int]:
+        """Derive an auditor account PDA address."""
+        return Pubkey.find_program_address(
+            [b"auditor", bytes(authority)],
+            self._program_id,
+        )
+
+    def get_badge_address(self, program_entry_pubkey: Pubkey) -> tuple[Pubkey, int]:
+        """Derive a verification badge PDA address."""
+        return Pubkey.find_program_address(
+            [b"badge", bytes(program_entry_pubkey)],
+            self._program_id,
+        )
+
+    def get_pattern_address(self, pattern_id: str) -> tuple[Pubkey, int]:
+        """Derive a context pattern PDA address."""
+        return Pubkey.find_program_address(
+            [b"pattern", pattern_id.encode("utf-8")],
+            self._program_id,
+        )
+
+    @property
+    def rpc_url(self) -> str:
+        return self._rpc_url
+
+    @property
+    def program_id(self) -> Pubkey:
+        return self._program_id
