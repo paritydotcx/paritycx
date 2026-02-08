@@ -18,6 +18,7 @@ import {
 import { SkillsApi } from "./skills";
 import { ContextApi } from "./context";
 
+/** Core analysis orchestrator: validates, submits, formats. */
 export class AnalysisEngine {
     private readonly http: AxiosInstance;
     private readonly skills: SkillsApi;
