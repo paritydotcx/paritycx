@@ -8,7 +8,7 @@ from parity_sdk.constants import DEFAULT_SOLANA_RPC
 PROGRAM_ID = Pubkey.from_string("PARTYxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1")
 
 
-class SolanaProvider:
+class SolanaProvider:  # On-chain PDA derivation and account helpers
     """Solana on-chain interaction provider for PDA derivation and account fetching."""
 
     def __init__(
