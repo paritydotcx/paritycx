@@ -114,4 +114,54 @@ class SkillParser:
                 errors.append("Version must follow semver format (x.y.z)")
 
             for inp in meta.get("inputs", []):
-                if not inp.get("name"):
+                if not inp.get("name"):
+                    errors.append("Input missing name")
+                if not inp.get("type"):
+                    errors.append(f"Input '{inp.get('name', '?')}' missing type")
+
+            for out in meta.get("outputs", []):
+                if not out.get("name"):
+                    errors.append("Output missing name")
+                if not out.get("type"):
+                    errors.append(f"Output '{out.get('name', '?')}' missing type")
+
+        except Exception as exc:
+            errors.append(f"Parse error: {exc}")
+
+        return (len(errors) == 0, errors)
+
+    @staticmethod
+    def _split_frontmatter(content: str) -> tuple[str, str]:
+        trimmed = content.strip()
+        if not trimmed.startswith("---"):
+            raise ValueError("SKILL.md must start with YAML frontmatter (---)")
+
+        end_idx = trimmed.index("---", 3)
+        if end_idx == -1:
+            raise ValueError("SKILL.md frontmatter missing closing ---")
+
+        frontmatter = trimmed[3:end_idx].strip()
+        body = trimmed[end_idx + 3:].strip()
+        return frontmatter, body
+
+    @staticmethod
+    def _extract_steps(body: str) -> list[str]:
+        steps: list[str] = []
+        lines = body.split("\n")
+        in_steps = False
+
+        for line in lines:
+            lower = line.lower().strip()
+            if "## steps" in lower or "## analysis steps" in lower:
+                in_steps = True
+                continue
+
+            if in_steps and line.startswith("## "):
+                break
+
+            if in_steps:
+                match = re.match(r"^\d+\.\s+(.+)", line)
+                if match:
+                    steps.append(match.group(1).strip())
+
+        return steps
