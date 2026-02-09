@@ -10,6 +10,7 @@ import {
 } from "./types";
 import { ENDPOINTS, VULNERABILITY_CATEGORIES, SEVERITY_WEIGHTS } from "./constants";
 
+/** Read-through cache for context engine rules and patterns. */
 export class ContextApi {
     private readonly http: AxiosInstance;
     private rulesCache: StaticRule[] | null = null;
