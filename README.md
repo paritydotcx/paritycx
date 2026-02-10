@@ -217,4 +217,136 @@ The Parity Solana program is an Anchor-based on-chain registry that stores progr
 |  authority: Pubkey   |
 |  total_programs: u64 |
 |  total_analyses: u64 |
-+----------+----------+
++----------+----------+
+           |
+    +------+-------+-------+----------+-----------+
+    |      |       |       |          |           |
+    v      v       v       v          v           v
+Program  Analysis  Skill  Auditor   Badge    Context
+Entry    Report    Entry  Account   Verify   Pattern
+```
+
+### Account State
+
+The program defines the following on-chain accounts:
+
+```rust
+#[account]
+pub struct Registry {
+    pub authority: Pubkey,
+    pub total_programs: u64,
+    pub total_analyses: u64,
+    pub total_skills: u64,
+    pub total_auditors: u64,
+    pub total_patterns: u64,
+    pub min_score_for_badge: u8,
+    pub analysis_fee_lamports: u64,
+    pub is_paused: bool,
+    pub bump: u8,
+    pub created_at: i64,
+    pub updated_at: i64,
+}
+
+#[account]
+pub struct ProgramEntry {
+    pub owner: Pubkey,
+    pub program_hash: [u8; 32],
+    pub framework: Framework,
+    pub metadata_uri: String,
+    pub registered_at: i64,
+    pub analysis_count: u32,
+    pub latest_score: u8,
+    pub is_verified: bool,
+    pub bump: u8,
+}
+
+#[account]
+pub struct AnalysisReport {
+    pub program_entry: Pubkey,
+    pub auditor: Pubkey,
+    pub score: u8,
+    pub findings_hash: [u8; 32],
+    pub skills_used: Vec<String>,
+    pub findings_count: AnalysisFindingsCount,
+    pub submitted_at: i64,
+    pub version: u8,
+    pub bump: u8,
+}
+```
+
+### PDA Derivation
+
+All accounts use deterministic PDA derivation:
+
+```
+Registry:       seeds = ["registry"]
+ProgramEntry:   seeds = ["program", program_hash]
+AnalysisReport: seeds = ["analysis", program_entry, auditor]
+SkillEntry:     seeds = ["skill", skill_name]
+AuditorAccount: seeds = ["auditor", authority]
+Badge:          seeds = ["badge", program_entry]
+ContextPattern: seeds = ["pattern", pattern_id]
+```
+
+### Instructions
+
+| Instruction | Description |
+|---|---|
+| `initialize_registry` | Create the global registry singleton with configuration |
+| `register_program` | Register a new program entry with its hash and framework |
+| `submit_analysis` | Submit a scored analysis report for a registered program |
+| `update_analysis` | Update an existing analysis with new findings |
+| `register_skill` | Register a new analysis skill on-chain |
+| `update_skill` | Update skill version and description |
+| `deprecate_skill` | Mark a skill as deprecated |
+| `register_auditor` | Register a new auditor with credentials |
+| `update_auditor_status` | Activate or deactivate an auditor |
+| `create_verification_badge` | Issue a tier-based verification badge |
+| `revoke_verification_badge` | Revoke an issued badge |
+| `submit_context_pattern` | Submit a new vulnerability detection pattern |
+| `update_registry_config` | Update registry-wide configuration |
+
+### Verification Tiers
+
+Badges are issued based on analysis scores:
+
+| Tier | Minimum Score | Description |
+|---|---|---|
+| Bronze | 50 | Basic security review passed |
+| Silver | 70 | Standard security requirements met |
+| Gold | 85 | High security standards with best practices |
+| Platinum | 95 | Near-perfect audit with comprehensive coverage |
+
+---
+
+## TypeScript SDK
+
+### Installation
+
+```bash
+git clone https://github.com/parity-cx/parity.git
+cd parity/sdk/typescript
+npm install
+npm run build
+```
+
+### Quick Start
+
+```typescript
+import { ParityClient } from "@parity/sdk";
+
+const client = new ParityClient({
+  apiKey: process.env.PARITY_KEY,
+});
+
+// Analyze a Solana program
+const result = await client.analyze({
+  program: "./programs/counter/src/lib.rs",
+  framework: "anchor",
+  skills: ["security-audit", "best-practices"],
+});
+
+console.log(result.score);     // 0-100
+console.log(result.findings);  // Finding[]
+console.log(result.summary);   // Human-readable summary
+```
