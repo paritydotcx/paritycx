@@ -2,6 +2,7 @@ import { AxiosInstance } from "axios";
 import { SkillDefinition } from "./types";
 import { ENDPOINTS, SKILL_NAMES } from "./constants";
 
+/** Skill registry client with lazy caching and chain expansion. */
 export class SkillsApi {
     private readonly http: AxiosInstance;
     private cache: Map<string, SkillDefinition> = new Map();
