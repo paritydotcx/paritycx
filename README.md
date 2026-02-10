@@ -129,4 +129,92 @@ parity/
 |           |-- constants.py
 |           |-- skills.py         # SkillsApi
 |           |-- context.py        # ContextApi
-|           |-- analysis.py       # AnalysisEngine
+|           |-- analysis.py       # AnalysisEngine
+|           |-- solana_provider.py
+|           `-- parser.py         # SKILL.md parser
+|-- api/
+|   |-- package.json
+|   |-- tsconfig.json
+|   `-- src/
+|       |-- server.ts             # Express entry point
+|       |-- middleware/
+|       |   |-- auth.ts           # JWT / API key auth
+|       |   `-- error.ts          # Global error handler
+|       |-- routes/
+|       |   |-- analyze.ts        # POST /v1/analyze
+|       |   |-- skills.ts         # GET  /v1/skills
+|       |   |-- context.ts        # GET  /v1/context
+|       |   |-- programs.ts       # CRUD /v1/programs
+|       |   `-- health.ts         # GET  /v1/health
+|       |-- services/
+|       |   |-- analysis.ts       # Core analysis engine
+|       |   |-- skills.ts         # Skill definitions
+|       |   `-- context.ts        # Context engine data
+|       `-- utils/
+|           `-- logger.ts         # Winston logger
+`-- skills/
+    |-- security-audit/SKILL.md
+    |-- best-practices/SKILL.md
+    |-- gas-optimization/SKILL.md
+    `-- deep-audit/SKILL.md
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Rust](https://rustup.rs/) 1.75+
+- [Anchor CLI](https://www.anchor-lang.com/docs/installation) 0.30.1+
+- [Node.js](https://nodejs.org/) 18+
+- [Python](https://python.org/) 3.10+
+- [Solana CLI](https://docs.solanalabs.com/cli/install) 1.18+
+
+### Clone and Build
+
+```bash
+# Clone the repository
+git clone https://github.com/parity-cx/parity.git
+cd parity
+
+# Build the Solana program
+anchor build
+
+# Install TypeScript SDK dependencies
+cd sdk/typescript && npm install && npm run build && cd ../..
+
+# Install Python SDK dependencies
+cd sdk/python && pip install -e ".[dev]" && cd ../..
+
+# Install API dependencies
+cd api && npm install && cd ..
+```
+
+### Environment Setup
+
+```bash
+# Create a .env file at the project root
+cat > .env << 'EOF'
+PARITY_KEY=your_api_key_here
+SOLANA_RPC_URL=https://api.devnet.solana.com
+PORT=3100
+NODE_ENV=development
+EOF
+```
+
+---
+
+## On-Chain Program
+
+The Parity Solana program is an Anchor-based on-chain registry that stores program entries, analysis reports, skill registrations, auditor accounts, verification badges, and context patterns.
+
+### Program Architecture
+
+```
++---------------------+
+|      Registry       |  <-- Global singleton PDA
+|  authority: Pubkey   |
+|  total_programs: u64 |
+|  total_analyses: u64 |
++----------+----------+
