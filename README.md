@@ -482,4 +482,136 @@ with ParityClient(config) as client:
 ```python
 from parity_sdk import ParityClient, ParityConfig
 
-with ParityClient(ParityConfig(api_key="key")) as client:
+with ParityClient(ParityConfig(api_key="key")) as client:
+    # List all skills
+    skills = client.skills.list()
+    for skill in skills:
+        print(f"{skill.name} v{skill.version}: {skill.description}")
+
+    # Get a specific skill
+    audit = client.skills.get("security-audit")
+    print(audit.inputs)   # [SkillInput(...), ...]
+    print(audit.outputs)  # [SkillOutput(...), ...]
+
+    # Resolve deep-audit chain
+    chain = client.skills.get_chain("deep-audit")
+    # ["security-audit", "best-practices", "gas-optimization"]
+```
+
+### Context Engine
+
+```python
+from parity_sdk import ParityClient, ParityConfig, ContextQuery
+
+with ParityClient(ParityConfig(api_key="key")) as client:
+    # Query the context engine
+    ctx = client.context.get(ContextQuery(
+        pattern="missing-signer-check",
+        framework="anchor",
+    ))
+
+    for rule in ctx.rules:
+        print(f"[{rule.severity}] {rule.id}: {rule.description}")
+
+    # Calculate risk score
+    score = client.context.calculate_risk_score(ctx.audit_findings)
+    print(f"Risk score: {score}/100")
+```
+
+### Solana Provider
+
+```python
+from parity_sdk import SolanaProvider
+
+provider = SolanaProvider(rpc_url="https://api.devnet.solana.com")
+
+# Derive PDA addresses
+registry_addr, bump = provider.get_registry_address()
+program_addr, bump = provider.get_program_entry_address(program_hash_bytes)
+skill_addr, bump = provider.get_skill_address("security-audit")
+```
+
+### SKILL.md Parser
+
+```python
+from parity_sdk import SkillParser
+
+# Parse from file
+skill = SkillParser.parse_file("./skills/security-audit/SKILL.md")
+print(f"{skill.name} v{skill.version}")
+print(f"Steps: {len(skill.steps)}")
+
+# Validate
+valid, errors = SkillParser.validate(content)
+if not valid:
+    for err in errors:
+        print(f"  Error: {err}")
+
+# Serialize
+markdown = SkillParser.serialize(skill)
+```
+
+---
+
+## REST API
+
+The Parity API provides programmatic access to all analysis capabilities.
+
+### Endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/v1/analyze` | Analyze a Solana program |
+| `POST` | `/v1/analyze/batch` | Batch analyze multiple programs |
+| `GET` | `/v1/skills` | List all available skills |
+| `GET` | `/v1/skills/:name` | Get a specific skill definition |
+| `GET` | `/v1/skills/:name/chain` | Get skill execution chain |
+| `GET` | `/v1/context` | Query the context engine |
+| `GET` | `/v1/context/rules` | Get static analysis rules |
+| `GET` | `/v1/context/findings` | Get curated audit findings |
+| `GET` | `/v1/context/patterns` | Get framework patterns |
+| `GET` | `/v1/context/categories` | List vulnerability categories |
+| `GET` | `/v1/programs` | List registered programs |
+| `GET` | `/v1/programs/stats` | Get registry statistics |
+| `GET` | `/v1/programs/:hash` | Get a program by hash |
+| `POST` | `/v1/programs` | Register a new program |
+| `GET` | `/v1/health` | Health check |
+
+### Analysis Request
+
+```bash
+curl -X POST https://api.parity.cx/v1/analyze \
+  -H "Authorization: Bearer $PARITY_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "program": "use anchor_lang::prelude::*; ...",
+    "framework": "anchor",
+    "skills": ["security-audit", "best-practices"],
+    "output": "json"
+  }'
+```
+
+### Analysis Response
+
+```json
+{
+  "score": 62,
+  "findings": [
+    {
+      "severity": "critical",
+      "title": "Missing signer check on withdraw instruction",
+      "location": {
+        "file": "program.rs",
+        "line": 47,
+        "instruction": "withdraw"
+      },
+      "description": "The withdraw instruction does not verify that the authority account has signed the transaction.",
+      "recommendation": "Add a Signer constraint to the authority account.",
+      "pattern": "missing-signer-check"
+    }
+  ],
+  "summary": "Found 1 critical and 2 high severity issues. Overall score: 62/100.",
+  "skills": ["security-audit", "best-practices"],
+  "metadata": {
+    "framework": "anchor",
+    "analyzedAt": "2026-02-17T00:00:00.000Z",
