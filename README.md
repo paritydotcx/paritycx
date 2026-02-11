@@ -349,4 +349,137 @@ const result = await client.analyze({
 console.log(result.score);     // 0-100
 console.log(result.findings);  // Finding[]
 console.log(result.summary);   // Human-readable summary
-```
+```
+
+### Skills API
+
+```typescript
+// List all available skills
+const skills = await client.skills.list();
+
+// Get a specific skill definition
+const skill = await client.skills.get("security-audit");
+console.log(skill.name);        // "security-audit"
+console.log(skill.version);     // "1.0.0"
+console.log(skill.inputs);      // SkillInput[]
+console.log(skill.outputs);     // SkillOutput[]
+
+// Resolve a deep-audit into its chain
+const chain = await client.skills.getChain("deep-audit");
+// chain = ["security-audit", "best-practices", "gas-optimization"]
+```
+
+### Context Engine
+
+```typescript
+// Query the context engine
+const ctx = await client.context.get({
+  pattern: "missing-signer-check",
+  framework: "anchor",
+});
+
+console.log(ctx.rules);              // StaticRule[]
+console.log(ctx.auditFindings);      // AuditFindingEntry[]
+console.log(ctx.frameworkPatterns);   // FrameworkPatternEntry[]
+
+// Calculate risk score from findings
+const score = client.context.calculateRiskScore(ctx.auditFindings);
+```
+
+### Solana Provider
+
+```typescript
+import { SolanaProvider } from "@parity/sdk";
+
+const provider = new SolanaProvider("https://api.devnet.solana.com");
+
+// Derive PDA addresses
+const [registryAddr] = await provider.getRegistryAddress();
+const [programAddr]  = await provider.getProgramEntryAddress(programHash);
+const [analysisAddr] = await provider.getAnalysisAddress(programEntry, auditor);
+const [skillAddr]    = await provider.getSkillAddress("security-audit");
+
+// Fetch on-chain state
+const stats = await provider.getRegistryStats();
+console.log(stats.totalPrograms);
+console.log(stats.totalAnalyses);
+```
+
+### SKILL.md Parser
+
+```typescript
+import { SkillParser } from "@parity/sdk";
+
+// Parse a SKILL.md file
+const skill = SkillParser.parseFile("./skills/security-audit/SKILL.md");
+console.log(skill.name);    // "security-audit"
+console.log(skill.steps);   // ["Parse the program source...", ...]
+
+// Validate SKILL.md content
+const { valid, errors } = SkillParser.validate(content);
+if (!valid) {
+  console.error("Invalid SKILL.md:", errors);
+}
+
+// Serialize back to SKILL.md format
+const markdown = SkillParser.serialize(skill);
+```
+
+### Output Formats
+
+The analysis engine supports multiple output formats:
+
+```typescript
+import { AnalysisEngine } from "@parity/sdk";
+
+// Markdown report
+const markdown = AnalysisEngine.formatFindingsAsMarkdown(result.findings);
+
+// SARIF for GitHub Code Scanning
+const sarif = AnalysisEngine.formatFindingsAsSarif(
+  result.findings,
+  "./programs/vault/src/lib.rs"
+);
+```
+
+---
+
+## Python SDK
+
+### Installation
+
+```bash
+git clone https://github.com/parity-cx/parity.git
+cd parity/sdk/python
+pip install -e .
+```
+
+### Quick Start
+
+```python
+from parity_sdk import ParityClient, ParityConfig, AnalyzeOptions
+
+config = ParityConfig(api_key="your_api_key_here")
+
+with ParityClient(config) as client:
+    result = client.analyze(AnalyzeOptions(
+        program="./programs/counter/src/lib.rs",
+        framework="anchor",
+        skills=["security-audit", "best-practices"],
+    ))
+
+    print(f"Score: {result.score}")
+    print(f"Summary: {result.summary}")
+
+    for finding in result.findings:
+        print(f"  [{finding.severity}] {finding.title}")
+        print(f"    Location: {finding.location.file}:{finding.location.line}")
+        print(f"    Fix: {finding.recommendation}")
+```
+
+### Skills API
+
+```python
+from parity_sdk import ParityClient, ParityConfig
+
+with ParityClient(ParityConfig(api_key="key")) as client:
