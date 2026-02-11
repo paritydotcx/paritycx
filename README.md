@@ -614,4 +614,92 @@ curl -X POST https://api.parity.cx/v1/analyze \
   "skills": ["security-audit", "best-practices"],
   "metadata": {
     "framework": "anchor",
-    "analyzedAt": "2026-02-17T00:00:00.000Z",
+    "analyzedAt": "2026-02-17T00:00:00.000Z",
+    "duration": 342
+  }
+}
+```
+
+### Running the API Server
+
+```bash
+cd api
+npm install
+npm run dev
+# Server starts on http://localhost:3100
+```
+
+---
+
+## Skills
+
+Skills are modular analysis workflows defined in SKILL.md files. Each skill follows the SKILL.md specification with YAML frontmatter and natural-language instructions.
+
+### Built-in Skills
+
+| Skill | Type | Description |
+|---|---|---|
+| `security-audit` | Security | Comprehensive vulnerability analysis: signer checks, arithmetic, PDAs, CPI |
+| `best-practices` | Quality | Code organization, error handling, events, typed accounts |
+| `gas-optimization` | Performance | Compute unit efficiency, account packing, rent optimization |
+| `deep-audit` | Comprehensive | Multi-pass chained audit with cross-skill correlation |
+
+### SKILL.md Format
+
+```yaml
+---
+name: security-audit
+version: 1.0.0
+description: Comprehensive Solana program security analysis
+inputs:
+  - name: program
+    type: file
+    required: true
+  - name: framework
+    type: string
+    default: anchor
+outputs:
+  - name: findings
+    type: Finding[]
+  - name: score
+    type: number
+---
+
+# Security Audit Skill
+
+## Steps
+
+1. Parse the program source and resolve all account structures
+2. Check for missing signer validations on privileged instructions
+3. Verify arithmetic operations use checked math or overflow protection
+4. Validate CPI calls have correct program ID checks
+5. Ensure PDA seeds are deterministic and not attacker-controlled
+6. Check account constraints (has_one, constraint, seeds)
+7. Verify close account logic drains lamports and zeros data
+8. Score the program 0-100 based on finding severity
+```
+
+### Skill Chaining
+
+The `deep-audit` skill automatically chains three skills:
+
+```
+security-audit --> best-practices --> gas-optimization
+                                          |
+                                          v
+                                   Cross-correlation
+                                          |
+                                          v
+                                   Optimized Code
+```
+
+---
+
+## Context Engine
+
+The Context Engine provides structured knowledge across three layers:
+
+### Static Analysis Rules
+
+500+ AST-level vulnerability patterns covering:
+
