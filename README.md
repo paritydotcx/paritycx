@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="./assets/banner.jpg" alt="Parity.cx" width="100%" />
-</p>
-
-<p align="center">
   <img src="https://img.shields.io/badge/PARITY-Solana%20Verification%20Layer-0f0f0f?style=for-the-badge&labelColor=0f0f0f&color=6366f1" alt="Parity" />
 </p>
 
@@ -838,48 +834,4 @@ jobs:
             client.analyze({
               program: './programs/vault/src/lib.rs',
               framework: 'anchor',
-              skills: ['security-audit', 'best-practices'],
-              minScore: 70,
-              failOn: ['critical', 'high'],
-            }).then(r => {
-              console.log(r.summary);
-              if (r.score < 70) process.exit(1);
-            }).catch(e => {
-              console.error(e.message);
-              process.exit(1);
-            });
-          "
-```
-
-### Programmatic CI Script
-
-```typescript
-import { ParityClient } from "@parity/sdk";
-
-const client = new ParityClient({ apiKey: process.env.PARITY_KEY });
-
-const result = await client.analyze({
-  program: "./programs/vault/src/lib.rs",
-  framework: "anchor",
-  skills: ["security-audit", "best-practices"],
-});
-
-if (result.score < 70) {
-  console.error(`Score ${result.score} below threshold 70`);
-  process.exit(1);
-}
-
-const criticals = result.findings.filter(f => f.severity === "critical");
-if (criticals.length > 0) {
-  console.error(`Found ${criticals.length} critical findings`);
-  process.exit(1);
-}
-
-console.log("Analysis passed:", result.summary);
-```
-
----
-
-## License
-
-MIT -- see [LICENSE](./LICENSE).
+              skills: ['security-audit', 'best-practices'],
