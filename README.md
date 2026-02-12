@@ -702,4 +702,92 @@ The Context Engine provides structured knowledge across three layers:
 ### Static Analysis Rules
 
 500+ AST-level vulnerability patterns covering:
-
+
+| Category | Severity | Pattern |
+|---|---|---|
+| Missing Signer Check | Critical | Authority account without `Signer<'info>` |
+| Unchecked Arithmetic | High | Operators without `checked_add`, `checked_sub` |
+| Unvalidated PDA | Critical | PDA seeds without bump validation |
+| Insecure CPI | Critical | CPI without program ID verification |
+| Account Deserialization | High | Raw `AccountInfo` without discriminator check |
+| Close Account | High | Missing data zeroing on account close |
+| Type Cosplay | Critical | Missing discriminator allows account substitution |
+| Reinitialization | Critical | Account re-init via repeated `init` calls |
+| Owner Check | High | Missing owner validation on accounts |
+
+### Curated Audit Knowledge
+
+Patterns extracted from public audit reports:
+
+```
+Source: OtterSec, Sec3, Neodyme
+Scope: 163 audits, 1,669 vulnerabilities identified
+Average: 1.4 critical/high findings per audit
+```
+
+### Framework Intelligence
+
+Deep knowledge of Anchor macros and Solana runtime:
+
+```rust
+// Account initialization (Anchor)
+#[account(
+    init,
+    payer = user,
+    space = 8 + MyAccount::INIT_SPACE,
+    seeds = [b"seed", user.key().as_ref()],
+    bump
+)]
+
+// Safe CPI invocation
+let cpi_ctx = CpiContext::new(
+    ctx.accounts.token_program.to_account_info(),
+    Transfer { from, to, authority },
+);
+
+// Checked arithmetic
+let result = a.checked_add(b).ok_or(MyError::Overflow)?;
+```
+
+---
+
+## Analysis Pipeline
+
+The analysis pipeline follows three phases:
+
+```
+Source Code
+    |
+    v
++--------+     +----------+     +---------+
+| Parse  | --> | Analyze  | --> | Report  |
++--------+     +----------+     +---------+
+    |               |                |
+    v               v                v
+ AST +          Findings         Structured
+ Accounts    (severity-scored)    Output
+ CPI calls                      (JSON/SARIF/MD)
+ PDA seeds
+```
+
+### Phase 1: Parse
+
+The SDK parses Rust/Anchor source into an AST and resolves:
+
+- Account structures from `#[derive(Accounts)]`
+- CPI calls and their target programs
+- PDA derivation patterns and seed composition
+- Instruction handler boundaries
+
+### Phase 2: Analyze
+
+Selected skills run against the parsed AST:
+
+- Pattern matching against 500+ vulnerability signatures
+- Framework-specific rule evaluation
+- Cross-reference with curated audit findings
+- Scoring based on severity weights
+
+### Phase 3: Report
+
+Findings are returned as structured data:
