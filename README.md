@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="./assets/banner.jpg" alt="Parity.cx" width="100%" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/PARITY-Solana%20Verification%20Layer-0f0f0f?style=for-the-badge&labelColor=0f0f0f&color=6366f1" alt="Parity" />
 </p>
 
@@ -790,4 +794,92 @@ Selected skills run against the parsed AST:
 
 ### Phase 3: Report
 
-Findings are returned as structured data:
+Findings are returned as structured data:
+
+```typescript
+interface Finding {
+  severity: "critical" | "high" | "medium" | "info" | "pass";
+  title: string;
+  location: { file: string; line: number; instruction?: string };
+  description: string;
+  recommendation: string;
+  pattern: string;
+}
+```
+
+---
+
+## CI/CD Integration
+
+### GitHub Actions
+
+```yaml
+name: Parity Analysis
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Clone Parity
+        run: |
+          git clone https://github.com/parity-cx/parity.git /tmp/parity
+          cd /tmp/parity/sdk/typescript && npm install && npm run build
+
+      - name: Run Analysis
+        env:
+          PARITY_KEY: ${{ secrets.PARITY_KEY }}
+        run: |
+          node -e "
+            const { ParityClient } = require('/tmp/parity/sdk/typescript');
+            const client = new ParityClient({ apiKey: process.env.PARITY_KEY });
+            client.analyze({
+              program: './programs/vault/src/lib.rs',
+              framework: 'anchor',
+              skills: ['security-audit', 'best-practices'],
+              minScore: 70,
+              failOn: ['critical', 'high'],
+            }).then(r => {
+              console.log(r.summary);
+              if (r.score < 70) process.exit(1);
+            }).catch(e => {
+              console.error(e.message);
+              process.exit(1);
+            });
+          "
+```
+
+### Programmatic CI Script
+
+```typescript
+import { ParityClient } from "@parity/sdk";
+
+const client = new ParityClient({ apiKey: process.env.PARITY_KEY });
+
+const result = await client.analyze({
+  program: "./programs/vault/src/lib.rs",
+  framework: "anchor",
+  skills: ["security-audit", "best-practices"],
+});
+
+if (result.score < 70) {
+  console.error(`Score ${result.score} below threshold 70`);
+  process.exit(1);
+}
+
+const criticals = result.findings.filter(f => f.severity === "critical");
+if (criticals.length > 0) {
+  console.error(`Found ${criticals.length} critical findings`);
+  process.exit(1);
+}
+
+console.log("Analysis passed:", result.summary);
+```
+
+---
+
+## License
+
+MIT -- see [LICENSE](./LICENSE).
