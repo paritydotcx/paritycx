@@ -9,6 +9,7 @@ export interface AuthenticatedRequest extends Request {
     apiKeyId?: string;
 }
 
+// Supports both Bearer JWT tokens and raw API keys via X-Parity-Key header
 export function authMiddleware(
     req: AuthenticatedRequest,
     res: Response,
