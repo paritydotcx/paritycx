@@ -20,6 +20,7 @@ export class AppError extends Error {
     }
 }
 
+// Centralised error handler -- normalises all errors into a consistent JSON envelope
 export function errorHandler(
     err: Error | AppError,
     _req: Request,
