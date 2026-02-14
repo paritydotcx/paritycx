@@ -22,7 +22,7 @@ from parity_sdk.context import ContextApi
 from parity_sdk.analysis import AnalysisEngine
 
 
-class ParityClient:
+class ParityClient:  # Thread-safe, auto-retrying HTTP client
     """Primary client for interacting with the Parity API."""
 
     def __init__(self, config: ParityConfig) -> None:
