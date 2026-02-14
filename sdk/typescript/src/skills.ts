@@ -60,7 +60,8 @@ export class SkillsApi {
         return [skillName];
     }
 
-    clearCache(): void {
+    /** Evict all cached skill definitions, forcing fresh fetches. */
+  clearCache(): void {
         this.cache.clear();
     }
 
