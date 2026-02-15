@@ -32,7 +32,6 @@ const SEVERITY_WEIGHT: Record<string, number> = {
     pass: 0,
 };
 
-/** End-to-end analysis pipeline: parse, check, score, format. */
 export class AnalysisService {
     private readonly checks: VulnerabilityCheck[];
 
