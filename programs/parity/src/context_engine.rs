@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 use crate::state::{Severity, PatternType};
 
+/// A static rule derived from curated audit databases and framework intelligence.
 pub struct VulnerabilityRule {
     pub id: &'static str,
     pub severity: Severity,
