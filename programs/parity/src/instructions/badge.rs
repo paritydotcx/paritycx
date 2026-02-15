@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use crate::state::*;
 use crate::errors::ParityError;
 
+/// Issues a tiered badge if the latest analysis meets the score threshold.
 pub fn create_verification_badge(
     ctx: Context<CreateVerificationBadge>,
     tier: VerificationTier,
