@@ -1,5 +1,6 @@
 use anchor_lang::prelude::*;
 
+/// Protocol-level errors returned by the Parity on-chain program.
 #[error_code]
 pub enum ParityError {
     #[msg("Analysis score must be between 0 and 100")]
