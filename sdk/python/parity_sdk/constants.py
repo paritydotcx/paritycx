@@ -43,6 +43,7 @@ MAX_SKILLS_PER_ANALYSIS = 8
 
 SUPPORTED_FRAMEWORKS = ("anchor", "native", "seahorse", "steel")
 
+# Canonical list -- must stay in sync with the on-chain ContextPattern enum
 VULNERABILITY_CATEGORIES = (
     "missing-signer-check",
     "unchecked-arithmetic",
