@@ -16,6 +16,7 @@ import { logger } from "./utils/logger";
 
 config();
 
+// Middleware order matters: cors, json, auth, routes, error
 const app = express();
 const PORT = process.env.PORT || 3100;
 
