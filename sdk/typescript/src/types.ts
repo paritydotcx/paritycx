@@ -1,3 +1,4 @@
+/** Client configuration -- all fields except apiKey have sensible defaults. */
 export interface ParityConfig {
     apiKey: string;
     baseUrl?: string;
