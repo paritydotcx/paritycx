@@ -1,3 +1,4 @@
+// Primary client
 export { ParityClient } from "./client";
 export { SkillsApi } from "./skills";
 export { ContextApi } from "./context";
