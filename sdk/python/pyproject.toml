@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "parity-sdk"
 version = "0.3.0"
-description = "Python SDK for Parity -- AI-native verification layer for Solana smart contracts"
+description = "Python SDK for Parity -- AI-native verification layer for Solana smart contracts. Typed methods for analysis, skills, and context engine."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
