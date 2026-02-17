@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="./assets/banner.jpg" alt="Parity.cx" width="100%" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/PARITY-Solana%20Verification%20Layer-0f0f0f?style=for-the-badge&labelColor=0f0f0f&color=6366f1" alt="Parity" />
 </p>
 
